@@ -185,7 +185,7 @@ static void snd_rpi_hifiberry_dacplus_set_sclk(struct snd_soc_component *compone
 static int snd_rpi_hifiberry_dacplus_init(struct snd_soc_pcm_runtime *rtd)
 {
 	struct snd_soc_component *component = asoc_rtd_to_codec(rtd, 0)->component;
-	struct pcm512x_priv *priv;
+	struct pcm512x_priv *priv = snd_soc_codec_get_drvdata(codec);
 	struct snd_soc_card *card = &snd_rpi_hifiberry_dacplus;
 
 	if (slave)
@@ -205,8 +205,16 @@ static int snd_rpi_hifiberry_dacplus_init(struct snd_soc_pcm_runtime *rtd)
 		snd_soc_component_update_bits(component, PCM512x_BCLK_LRCLK_CFG, 0x31, 0x11);
 		snd_soc_component_update_bits(component, PCM512x_MASTER_MODE, 0x03, 0x03);
 		snd_soc_component_update_bits(component, PCM512x_MASTER_CLKDIV_2, 0x7f, 63);
+
+		/*
+		 * Default sclk to CLK_48EN_RATE, otherwise codec
+		 *  pcm512x_dai_startup_master method could call
+		 *  snd_pcm_hw_constraint_ratnums using CLK_44EN/64
+		 *  which will mask 384k sample rate.
+		 */
+		if (!IS_ERR(priv->sclk))
+			clk_set_rate(priv->sclk, CLK_48EN_RATE);
 	} else {
-		priv = snd_soc_component_get_drvdata(component);
 		priv->sclk = ERR_PTR(-ENOENT);
 	}
 
@@ -323,6 +331,18 @@ static void snd_rpi_hifiberry_dacplus_shutdown(
 	snd_soc_component_update_bits(component, PCM512x_GPIO_CONTROL_1, 0x08, 0x00);
 	if (auto_mute)
 		gpiod_set_value_cansleep(snd_mute_gpio, 1);
+
+	if (snd_rpi_hifiberry_is_dacpro) {
+		struct pcm512x_priv *priv = snd_soc_codec_get_drvdata(codec);
+		/*
+		 * Default sclk to CLK_48EN_RATE, otherwise codec
+		 *  pcm512x_dai_startup_master method could call
+		 *  snd_pcm_hw_constraint_ratnums using CLK_44EN/64
+		 *  which will mask 384k sample rate.
+		 */
+		if (!IS_ERR(priv->sclk))
+			clk_set_rate(priv->sclk, CLK_48EN_RATE);
+	}
 }
 
 /* machine stream operations */
