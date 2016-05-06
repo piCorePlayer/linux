@@ -8,6 +8,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
 	ads7846.dtbo \
 	adv7282m.dtbo \
 	adv728x-m.dtbo \
+	akkordion-es9023-audio.dtbo \
 	akkordion-iqdacplus.dtbo \
 	allo-boss-dac-pcm512x-audio.dtbo \
 	allo-digione.dtbo \
