@@ -24,6 +24,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
 	dwc2.dtbo \
 	enc28j60.dtbo \
 	enc28j60-spi2.dtbo \
+	es9023-audio.dtbo \
 	fe-pi-audio.dtbo \
 	googlevoicehat-soundcard.dtbo \
 	gpio-ir.dtbo \
