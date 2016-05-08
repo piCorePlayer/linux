@@ -95,6 +95,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
 	justboom-dac.dtbo \
 	justboom-digi.dtbo \
 	ltc294x.dtbo \
+	mamboberry-dacplus-es9023-audio.dtbo \
 	max98357a.dtbo \
 	mbed-dac.dtbo \
 	mcp23017.dtbo \
