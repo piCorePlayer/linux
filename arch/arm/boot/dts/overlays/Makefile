@@ -40,6 +40,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
 	hifiberry-digi-pro.dtbo \
 	hy28a.dtbo \
 	hy28b.dtbo \
+	i-sabre-dac-es9023-audio.dtbo \
 	i2c-bcm2708.dtbo \
 	i2c-gpio.dtbo \
 	i2c-mux.dtbo \
