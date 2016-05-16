@@ -1,0 +1,78 @@
+HW-params-rules:
+
+Rules that execute actions during hw-params method calls.
+
+The following optional nodes will sit inside the sound card nodes:
+
+hw-params-rule subnodes:
+
+contains further subnodes:
+
+- match:  list of matches that have to apply
+- action: list of actions to execute
+
+match and action subnodes:
+
+Required properties:
+
+- method: the method name (string) to execute
+
+required/optional depend on the method defined above, typical properies
+
+Required values for methods:
+* asoc_generic_hw_params_match_sample_bits
+* asoc_generic_hw_params_match_rate
+* asoc_generic_hw_params_match_channel
+* asoc_generic_hw_params_set_fixed_bclk_size
+
+- value: u32 value to pass to method.
+
+Example:
+sound {
+	compatible = "simple-audio-card";
+	...
+	/*
+	 * set bclk_size to 80 when encountering:
+	 * 48kHz with 2 channels with 32bit/channel
+	 */
+	hw-params-rule@0 {
+		match@0 {
+			method = "asoc_generic_hw_params_match_sample_bits";
+			value = <32>;
+		};
+		match@1 {
+			method = "asoc_generic_hw_params_match_rate";
+			value = <48000>;
+		};
+		match@2 {
+			method = "asoc_generic_hw_params_match_channels";
+			value = <2>;
+		};
+		action@0 {
+			method = "asoc_generic_hw_params_set_fixed_bclk_size";
+			value = <80>;
+		};
+	};
+	/*
+	 * set bclk_size to 40 when encountering:
+	 * 48kHz with 2 channels with 16bit/channel
+	 */
+	hw-params-rule@0 {
+		match@0 {
+			method = "asoc_generic_hw_params_match_sample_bits";
+			value = <16>;
+		};
+		match@1 {
+			method = "asoc_generic_hw_params_match_rate";
+			value = <48000>;
+		};
+		match@2 {
+			method = "asoc_generic_hw_params_match_channels";
+			value = <2>;
+		};
+		action@0 {
+			method = "asoc_generic_hw_params_set_fixed_bclk_size";
+			value = <40>;
+		};
+	};
+};
