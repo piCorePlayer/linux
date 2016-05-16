@@ -1,6 +1,12 @@
 config SND_SIMPLE_CARD_UTILS
        tristate
 
+config SND_HW_PARAMS_RULES
+	tristate "ASoC hw_param rules support"
+	depends on OF
+	help
+	  This option enables generic hw_param_rules support
+
 config SND_SIMPLE_CARD
 	tristate "ASoC Simple sound card support"
 	select SND_SIMPLE_CARD_UTILS
