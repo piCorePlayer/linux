@@ -33,6 +33,7 @@ Optional subnodes:
 					  omitted when the card has only one
 					  DAI link. See the examples and the
 					  section below.
+- hw-params-rules			: Please refer to hw-params-rules.txt.
 
 Dai-link subnode properties and subnodes:
 
