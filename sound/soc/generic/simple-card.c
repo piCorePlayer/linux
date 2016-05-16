@@ -8,6 +8,7 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
+#include "hw-params-rules.h"
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/gpio.h>
@@ -38,6 +39,7 @@ struct simple_card_data {
 	struct asoc_simple_jack hp_jack;
 	struct asoc_simple_jack mic_jack;
 	struct snd_soc_dai_link *dai_link;
+	struct list_head hw_params_rules;
 };
 
 #define simple_priv_to_dev(priv) ((priv)->snd_card.dev)
@@ -169,7 +171,9 @@ static int asoc_simple_card_hw_params(struct snd_pcm_substream *substream,
 		if (ret && ret != -ENOTSUPP)
 			goto err;
 	}
-	return 0;
+
+	return asoc_generic_hw_params_process_rules(
+		&priv->hw_params_rules, substream, params);
 err:
 	return ret;
 }
@@ -410,7 +414,8 @@ static int asoc_simple_card_parse_of(struct device_node *node,
 card_parse_end:
 	of_node_put(dai_link);
 
-	return ret;
+	return asoc_generic_hw_params_rules_parse_of(
+		dev, node, &priv->hw_params_rules);
 }
 
 static int asoc_simple_card_probe(struct platform_device *pdev)
