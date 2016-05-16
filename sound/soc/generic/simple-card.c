@@ -8,6 +8,7 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
+#include "hw-params-rules.h"
 #include <linux/clk.h>
 #include <linux/device.h>
 #include <linux/gpio.h>
@@ -33,6 +34,7 @@ struct simple_card_data {
 	int gpio_hp_det_invert;
 	int gpio_mic_det;
 	int gpio_mic_det_invert;
+	struct list_head hw_params_rules;
 	struct snd_soc_dai_link dai_link[];	/* dynamically allocated */
 };
 
@@ -51,7 +53,7 @@ static int asoc_simple_card_startup(struct snd_pcm_substream *substream)
 	ret = clk_prepare_enable(dai_props->cpu_dai.clk);
 	if (ret)
 		return ret;
-	
+
 	ret = clk_prepare_enable(dai_props->codec_dai.clk);
 	if (ret)
 		clk_disable_unprepare(dai_props->cpu_dai.clk);
@@ -100,7 +102,9 @@ static int asoc_simple_card_hw_params(struct snd_pcm_substream *substream,
 		if (ret && ret != -ENOTSUPP)
 			goto err;
 	}
-	return 0;
+
+	return asoc_generic_hw_params_process_rules(
+		&priv->hw_params_rules, substream, params);
 err:
 	return ret;
 }
@@ -511,7 +515,8 @@ static int asoc_simple_card_parse_of(struct device_node *node,
 	if (!priv->snd_card.name)
 		priv->snd_card.name = priv->snd_card.dai_link->name;
 
-	return 0;
+	return asoc_generic_hw_params_rules_parse_of(
+		dev, node, &priv->hw_params_rules);
 }
 
 /* Decrease the reference count of the device nodes */
