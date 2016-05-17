@@ -26,6 +26,7 @@ Required values for methods:
 * asoc_generic_hw_params_set_fixed_bclk_size
 
 - value: u32 value to pass to method.
+- values: u32 value array to pass to method.
 
 Example:
 sound {
@@ -33,20 +34,20 @@ sound {
 	...
 	/*
 	 * set bclk_size to 80 when encountering:
-	 * 48kHz with 2 channels with 32bit/channel
+	 * 48kHz or 96kHz with 2 channels with 32bit/channel
 	 */
 	hw-params-rule@0 {
 		match@0 {
 			method = "asoc_generic_hw_params_match_sample_bits";
-			value = <32>;
+			values = <32>;
 		};
 		match@1 {
 			method = "asoc_generic_hw_params_match_rate";
-			value = <48000>;
+			values = <48000>, <96000>;
 		};
 		match@2 {
 			method = "asoc_generic_hw_params_match_channels";
-			value = <2>;
+			values = <2>;
 		};
 		action@0 {
 			method = "asoc_generic_hw_params_set_fixed_bclk_size";
@@ -60,15 +61,15 @@ sound {
 	hw-params-rule@0 {
 		match@0 {
 			method = "asoc_generic_hw_params_match_sample_bits";
-			value = <16>;
+			values = <16>;
 		};
 		match@1 {
 			method = "asoc_generic_hw_params_match_rate";
-			value = <48000>;
+			values = <48000>;
 		};
 		match@2 {
 			method = "asoc_generic_hw_params_match_channels";
-			value = <2>;
+			values = <2>;
 		};
 		action@0 {
 			method = "asoc_generic_hw_params_set_fixed_bclk_size";
