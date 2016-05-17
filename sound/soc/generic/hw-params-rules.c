@@ -295,12 +295,14 @@ static int asoc_generic_hw_params_actionmatches_parse_of(
 	/* init matchers */
 	INIT_LIST_HEAD(list_head);
 
-	for (np = of_find_node_by_name(node, nodename); np;
-	     np = of_find_node_by_name(np, nodename)) {
-		ret = asoc_generic_hw_params_actionmatch_parse_of(
-			dev, np, list_head, nodename);
-		if (ret)
-			return ret;
+	/* iterate over all child nodes */
+	for_each_child_of_node(node, np) {
+		if (np->name && (of_node_cmp(np->name, nodename) == 0)) {
+			ret = asoc_generic_hw_params_actionmatch_parse_of(
+				dev, np, list_head, nodename);
+			if (ret)
+				return ret;
+		}
 	}
 
 	return 0;
