@@ -27,7 +27,9 @@ struct snd_soc_hw_params_actionmatch {
 
 struct snd_soc_hw_param_rule {
 	struct list_head list;
-	const char *name;
+	const char *of_full_name;
+	const char *rule_name;
+	u32 priority;
 	struct list_head matches;
 	struct list_head actions;
 };
@@ -198,7 +200,8 @@ static int asoc_generic_hw_params_handle_rule(
 	struct snd_soc_hw_params_actionmatch *am;
 	int ret;
 
-	dev_dbg(dev, "Trying to apply rule: %s\n", rule->name);
+	dev_dbg(dev, "Trying to apply rule: (%s) %s\n", rule->rule_name,
+		rule->of_full_name);
 
 	/* apply match rules */
 	list_for_each_entry(am, &rule->matches, list) {
@@ -317,9 +320,18 @@ static int asoc_generic_hw_params_rule_parse_of(
 	if (!rule)
 		return -ENOMEM;
 
-	rule->name = of_node_full_name(node);
+	rule->of_full_name = of_node_full_name(node);
 
-	dev_dbg(dev, "\tadding Rule: %s\n", rule->name);
+	if (of_property_read_string(node, "rule-name", &rule->rule_name)) {
+		rule->rule_name = "undefined";
+	}
+
+	if (of_property_read_u32(node, "priority", &rule->priority)) {
+		rule->priority = 0;
+	}
+
+	dev_dbg(dev, "\tadding Rule: (%s) %s\n", rule->rule_name,
+		rule->of_full_name);
 
 	/* parse all matches sub-nodes */
 	ret = asoc_generic_hw_params_actionmatches_parse_of(
@@ -339,16 +351,17 @@ static int asoc_generic_hw_params_rule_parse_of(
 	return 0;
 }
 
-static int asoc_generic_hw_params_rules_cmp_name(
+static int asoc_generic_hw_params_rules_cmp_priority(
 	void *data, struct list_head *a, struct list_head *b)
 {
 	struct snd_soc_hw_param_rule *rulea;
 	struct snd_soc_hw_param_rule *ruleb;
 
 	rulea = container_of(a, typeof(*rulea), list);
-	ruleb = container_of(a, typeof(*rulea), list);
+	ruleb = container_of(b, typeof(*ruleb), list);
 
-	return strcmp(rulea->name, ruleb->name);
+	return rulea->priority > ruleb->priority ? -1
+			: (rulea->priority < ruleb->priority ? 1 : 0);
 }
 
 int asoc_generic_hw_params_rules_parse_of(
@@ -375,7 +388,7 @@ int asoc_generic_hw_params_rules_parse_of(
 	}
 
 	/* and sort by name */
-	list_sort(NULL, list_head, asoc_generic_hw_params_rules_cmp_name);
+	list_sort(NULL, list_head, asoc_generic_hw_params_rules_cmp_priority);
 
 	/* iterate the sub-nodes */
 	return 0;
