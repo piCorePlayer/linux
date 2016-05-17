@@ -206,6 +206,7 @@ static int asoc_generic_hw_params_handle_rule(
 	list_for_each_entry(am, &rule->matches, list) {
 		dev_dbg(dev, "\tRunning match %pf(%pK)\n",
 			am->method, am->data);
+		/* match method return 0 on match, 1 otherwise */
 		ret = am->method(substream, params, am->data);
 		if (!ret)
 			return 1;
@@ -215,10 +216,12 @@ static int asoc_generic_hw_params_handle_rule(
 	list_for_each_entry(am, &rule->actions, list) {
 		dev_dbg(dev, "\tRunning action %pf(%pK)\n",
 			am->method, am->data);
+		/* action method returns 0 on success */
 		ret = am->method(substream, params, am->data);
 		if (ret)
 			return ret;
 	}
+
 	return 0;
 }
 
