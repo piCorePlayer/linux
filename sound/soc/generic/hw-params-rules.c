@@ -127,6 +127,44 @@ static int asoc_generic_hw_params_match_rate(
 	return 0;
 }
 
+static int asoc_generic_hw_params_match_rate_gt(
+	struct snd_pcm_substream *substream,
+	struct snd_pcm_hw_params *params,
+	void *data)
+{
+	long int rate = params_rate(params);
+
+	return (rate > (long int) data);
+}
+
+static int asoc_generic_hw_params_match_rate_lt(
+	struct snd_pcm_substream *substream,
+	struct snd_pcm_hw_params *params,
+	void *data)
+{
+	long int rate = params_rate(params);
+
+	return (rate < (long int) data);
+}
+
+static int asoc_generic_hw_params_match_rate_div_by(
+	struct snd_pcm_substream *substream,
+	struct snd_pcm_hw_params *params,
+	void *data)
+{
+	long int rate = params_rate(params);
+
+	return (rate % (long int) data == 0);
+}
+
+static int asoc_generic_hw_params_match_noop(
+	struct snd_pcm_substream *substream,
+	struct snd_pcm_hw_params *params,
+	void *data)
+{
+	return 1;
+}
+
 static int asoc_generic_hw_params_set_fixed_bclk_size(
 	struct snd_pcm_substream *substream,
 	struct snd_pcm_hw_params *params,
@@ -153,12 +191,18 @@ struct asoc_generic_hw_params_method {
 	HW_PARAMS_METHOD(n, asoc_generic_hw_params_read_u32)
 #define HW_PARAMS_METHOD_U32ARRAY(n) \
 	HW_PARAMS_METHOD(n, asoc_generic_hw_params_read_u32array)
+#define HW_PARAMS_METHOD_NOOP(n) \
+	HW_PARAMS_METHOD(n, NULL)
 
 static const struct asoc_generic_hw_params_method
 asoc_generic_hw_params_methods[] = {
 	HW_PARAMS_METHOD_U32ARRAY(asoc_generic_hw_params_match_sample_bits),
 	HW_PARAMS_METHOD_U32ARRAY(asoc_generic_hw_params_match_rate),
+	HW_PARAMS_METHOD_U32(asoc_generic_hw_params_match_rate_gt),
+	HW_PARAMS_METHOD_U32(asoc_generic_hw_params_match_rate_lt),
+	HW_PARAMS_METHOD_U32(asoc_generic_hw_params_match_rate_div_by),
 	HW_PARAMS_METHOD_U32ARRAY(asoc_generic_hw_params_match_channels),
+	HW_PARAMS_METHOD_NOOP(asoc_generic_hw_params_match_noop),
 	HW_PARAMS_METHOD_U32(asoc_generic_hw_params_set_fixed_bclk_size)
 };
 
