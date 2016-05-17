@@ -40,10 +40,10 @@ struct snd_soc_size_u32array {
 static int asoc_generic_hw_params_read_u32array(
 	struct device *dev, struct device_node *node, void **data)
 {
-	int i, size, ret;
+	int size, ret;
 	struct snd_soc_size_u32array *array;
 
-	size = of_property_count_elems_of_size(node, "values", sizeof(u32));
+	size = of_property_count_u32_elems(node, "values");
 	if (size < 0) {
 		dev_err(dev,
 			"%s: Could not read size of property \"values\" - %d\n",
@@ -59,11 +59,9 @@ static int asoc_generic_hw_params_read_u32array(
 
 	array->size = size;
 
-	for (i = 0; i < size; i++) {
-		ret = of_property_read_u32(node, "values", &array->data[i]);
-		if (ret)
-			return ret;
-	}
+	ret = of_property_read_u32_array(node, "values", &array->data[0], size);
+	if (ret)
+		return ret;
 
 	return 0;
 }
