@@ -74,13 +74,30 @@ static int asoc_generic_hw_params_read_u32(
 	return of_property_read_u32(node, "value", (u32 *)data);
 }
 
-static int asoc_generic_hw_params_match_sample_bits(
+static int asoc_generic_hw_params_match_physical_bits(
 	struct snd_pcm_substream *substream,
 	struct snd_pcm_hw_params *params,
 	void *data)
 {
 	long int bits =
 		snd_pcm_format_physical_width(params_format(params));
+	struct snd_soc_size_u32array *array = data;
+	int i;
+
+	for (i = 0; i < array->size; i++) {
+		if (bits == array->data[i])
+			return 1;
+	}
+
+	return 0;
+}
+
+static int asoc_generic_hw_params_match_sample_bits(
+	struct snd_pcm_substream *substream,
+	struct snd_pcm_hw_params *params,
+	void *data)
+{
+	long int bits = snd_pcm_format_width(params_format(params));
 	struct snd_soc_size_u32array *array = data;
 	int i;
 
@@ -196,6 +213,7 @@ struct asoc_generic_hw_params_method {
 
 static const struct asoc_generic_hw_params_method
 asoc_generic_hw_params_methods[] = {
+	HW_PARAMS_METHOD_U32ARRAY(asoc_generic_hw_params_match_physical_bits),
 	HW_PARAMS_METHOD_U32ARRAY(asoc_generic_hw_params_match_sample_bits),
 	HW_PARAMS_METHOD_U32ARRAY(asoc_generic_hw_params_match_rate),
 	HW_PARAMS_METHOD_U32(asoc_generic_hw_params_match_rate_gt),
