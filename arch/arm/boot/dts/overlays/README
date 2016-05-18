@@ -1459,6 +1459,20 @@ Params: overclock_50            Clock (in MHz) to use when the MMC framework
         debug                   Enable debug output (default off)
 
 
+Name:   simple-es9023-audio
+Info:   Configures a generic board or HAT using ESS Sabre ES9023 DAC
+Load:   dtoverlay=simple-es9023-audio,<param>,<param>=<val>
+Params: 384k                    Instructs the es9023 codec driver to support
+                                352k8 and 384k sample rates.
+        card_name               Override the default, "es9023", card name.
+
+
+Name:   simple-pcm5102a-audio
+Info:   Configures a generic board or HAT using the TI PCM510x DAC
+Load:   dtoverlay=simple-pcm5102a-audio,<param>=<val>
+Params: card_name               Override the default, "pcm5102a", card name.
+
+
 Name:   smi
 Info:   Enables the Secondary Memory Interface peripheral. Uses GPIOs 2-25!
 Load:   dtoverlay=smi
