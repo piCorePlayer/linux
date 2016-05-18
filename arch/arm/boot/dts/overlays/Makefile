@@ -93,6 +93,9 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
 	sdio.dtbo \
 	sdio-1bit.dtbo \
 	sdtweak.dtbo \
+	simple-bclk-int-div-40-80.dtbo \
+	simple-bclk-int-div-50-100.dtbo \
+	simple-bclk-64fs.dtbo \
 	simple-es9023-audio.dtbo \
 	simple-pcm5102a-audio.dtbo \
 	smi.dtbo \

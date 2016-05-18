@@ -1337,6 +1337,32 @@ Params: overclock_50            Clock (in MHz) to use when the MMC framework
         debug                   Enable debug output (default off)
 
 
+Name:   simple-bclk-64fs
+Info:   Use a "fixed" 64fs bclk_ratio for 2 channel, 32/24/16 bit audio.
+Load:   dtoverlay=simple-bclk-64fs
+Params: <None>
+
+
+Name:   simple-bclk-int-div-40-80
+Info:   Specify a bclk_integer_divisor preference for multiples of 8k rates
+        Use bclk_ratio=40 for S16_LE and bclk_ratio=80 for S24_LE and S32_LE
+        formats when the media sample rate is a multiple of 8000kHz and less
+        than 192kHz, which allows the use of the OSC with integer divider
+        rather than PLL with fractional (MASH) divider.
+Load:   dtoverlay=simple-bclk-int-div-40-80
+Params: <None>
+
+
+Name:   simple-bclk-int-div-50-100
+Info:   Specify a bclk_integer_divisor preference for multiples of 8k rates
+        Use bclk_ratio=50 for S16_LE and bclk_ratio=100 for S24_LE and S32_LE
+        formats when the media sample rate is a multiple of 8000kHz and less
+        than 192kHz, which allows the use of the OSC with integer divider
+        rather than PLL with fractional (MASH) divider.
+Load:   dtoverlay=simple-bclk-int-div-50-100
+Params: <None>
+
+
 Name:   simple-es9023-audio
 Info:   Configures a generic board or HAT using ESS Sabre ES9023 DAC
 Load:   dtoverlay=simple-es9023-audio,<param>,<param>=<val>
