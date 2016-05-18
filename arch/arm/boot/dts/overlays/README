@@ -2252,6 +2252,18 @@ Params: speed                   SPI bus speed (default 4000000)
         dc_pin                  GPIO pin for D/C (default 24)
         reset_pin               GPIO pin for RESET (default 25)
         height                  Display height (32 or 64; default 64)
+Name:   simple-es9023-audio
+Info:   Configures a generic board or HAT using ESS Sabre ES9023 DAC
+Load:   dtoverlay=simple-es9023-audio,<param>,<param>=<val>
+Params: 384k                    Instructs the es9023 codec driver to support
+                                352k8 and 384k sample rates.
+        card_name               Override the default, "es9023", card name.
+
+
+Name:   simple-pcm5102a-audio
+Info:   Configures a generic board or HAT using the TI PCM510x DAC
+Load:   dtoverlay=simple-pcm5102a-audio,<param>=<val>
+Params: card_name               Override the default, "pcm5102a", card name.
 
 
 Name:   smi
