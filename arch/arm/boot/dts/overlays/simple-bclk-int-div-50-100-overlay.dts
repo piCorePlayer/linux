@@ -1,0 +1,125 @@
+/*
+ * Copyright (c) 2016 Clive Messer <clive.messer@digitaldreamtime.co.uk>
+ *
+ * This file is dual-licensed: you can use it either under the terms
+ * of the GPL or the X11 license, at your option. Note that this dual
+ * licensing only applies to this file, and not this project as a
+ * whole.
+ *
+ *  a) This library is free software; you can redistribute it and/or
+ *     modify it under the terms of the GNU General Public License as
+ *     published by the Free Software Foundation; either version 2 of the
+ *     License, or (at your option) any later version.
+ *
+ *     This library is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ * Or, alternatively,
+ *
+ *  b) Permission is hereby granted, free of charge, to any person
+ *     obtaining a copy of this software and associated documentation
+ *     files (the "Software"), to deal in the Software without
+ *     restriction, including without limitation the rights to use,
+ *     copy, modify, merge, publish, distribute, sublicense, and/or
+ *     sell copies of the Software, and to permit persons to whom the
+ *     Software is furnished to do so, subject to the following
+ *     conditions:
+ *
+ *     The above copyright notice and this permission notice shall be
+ *     included in all copies or substantial portions of the Software.
+ *
+ *     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ *     OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+/*
+ * Definitions of bclk_integer_divisor preference for multiples of 8k rates.
+ *  bclk_ratio=50 for S16_LE and S24_3LE. bclk_ratio=100 for S24_LE and S32_LE.
+ *  eg. dtoverlay=simple-bclk-int-div-50-100
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2708";
+
+	fragment@0 {
+		target = <&sound>;
+		__overlay__ {
+			// 2ch, S24/S32 @ 8/16/32/48/64/96kHz rule
+			// set bclk_ratio=100
+			hw-params-rule@0 {
+				rule-name = "x8kHz_S24/S32_2CH_BCLK100";
+				priority = <99>;
+				match@0 {
+					method = "asoc_generic_hw_params_match_channels";
+					values = <2>;
+				};
+				match@1 {
+					method = "asoc_generic_hw_params_match_rate_lt";
+					value = <192000>;
+				};
+				match@2 {
+					method = "asoc_generic_hw_params_match_rate_div_by";
+					value = <8000>;
+				};
+				match@3 {
+					method = "asoc_generic_hw_params_match_physical_bits";
+					values = <32>;
+				};
+				action@0 {
+					method = "asoc_generic_hw_params_set_fixed_bclk_size";
+					value = <100>;
+				};
+			};
+			// 2ch, S24_3/S16 @ 8/16/32/48/64/96kHz rule
+			// set bclk_ratio=50
+			hw-params-rule@1 {
+				rule-name = "x8kHz_S24_3/S16_2CH_BCLK50";
+				priority = <99>;
+				match@0 {
+					method = "asoc_generic_hw_params_match_channels";
+					values = <2>;
+				};
+				match@1 {
+					method = "asoc_generic_hw_params_match_rate_lt";
+					value = <192000>;
+				};
+				match@2 {
+					method = "asoc_generic_hw_params_match_rate_div_by";
+					value = <8000>;
+				};
+				match@3 {
+					method = "asoc_generic_hw_params_match_physical_bits";
+					values = <16>, <24>;
+				};
+				action@0 {
+					method = "asoc_generic_hw_params_set_fixed_bclk_size";
+					value = <50>;
+				};
+			};
+			// default rule
+			// set blck_ratio=0 (Let cpu driver decide bclk_ratio)
+			hw-params-rule@2 {
+				rule-name = "DEFAULT_BCLK0";
+				priority = <0>;
+				match@0 {
+					method = "asoc_generic_hw_params_match_noop";
+				};
+				action@0 {
+					method = "asoc_generic_hw_params_set_fixed_bclk_size";
+					value = <0>;
+				};
+			};
+		};
+	};
+};
