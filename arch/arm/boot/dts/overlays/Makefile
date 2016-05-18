@@ -152,6 +152,8 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
 	sdio.dtbo \
 	sdtweak.dtbo \
 	sh1106-spi.dtbo \
+	simple-es9023-audio.dtbo \
+	simple-pcm5102a-audio.dtbo \
 	smi.dtbo \
 	smi-dev.dtbo \
 	smi-nand.dtbo \
