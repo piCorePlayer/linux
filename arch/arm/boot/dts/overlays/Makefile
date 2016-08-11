@@ -46,7 +46,6 @@ dtbo-$(RPI_DT_OVERLAYS) += i2c-sensor.dtbo
 dtbo-$(RPI_DT_OVERLAYS) += i2c0-bcm2708.dtbo
 dtbo-$(RPI_DT_OVERLAYS) += i2c1-bcm2708.dtbo
 dtbo-$(RPI_DT_OVERLAYS) += i2s-gpio28-31.dtbo
-dtbo-$(RPI_DT_OVERLAYS) += i2s-mmap.dtbo
 dtbo-$(RPI_DT_OVERLAYS) += iqaudio-dac.dtbo
 dtbo-$(RPI_DT_OVERLAYS) += iqaudio-dacplus.dtbo
 dtbo-$(RPI_DT_OVERLAYS) += iqaudio-digi-wm8804-audio.dtbo
