@@ -21,6 +21,7 @@ snd-soc-digidac1-soundcard-objs := digidac1-soundcard.o
 snd-soc-dionaudio-loco-objs := dionaudio_loco.o
 snd-soc-allo-piano-dac-objs := allo-piano-dac.o
 snd-soc-pisound-objs := pisound.o
+snd-soc-es9023-dac-objs := es9023_dac.o
 
 obj-$(CONFIG_SND_BCM2708_SOC_ADAU1977_ADC) += snd-soc-adau1977-adc.o
 obj-$(CONFIG_SND_BCM2708_SOC_HIFIBERRY_DAC) += snd-soc-hifiberry-dac.o
@@ -39,3 +40,4 @@ obj-$(CONFIG_SND_DIGIDAC1_SOUNDCARD) += snd-soc-digidac1-soundcard.o
 obj-$(CONFIG_SND_BCM2708_SOC_DIONAUDIO_LOCO) += snd-soc-dionaudio-loco.o
 obj-$(CONFIG_SND_BCM2708_SOC_ALLO_PIANO_DAC) += snd-soc-allo-piano-dac.o
 obj-$(CONFIG_SND_PISOUND) += snd-soc-pisound.o
+obj-$(CONFIG_SND_BCM2708_SOC_ES9023_DAC) += snd-soc-es9023-dac.o
