@@ -96,13 +96,13 @@ static void rtw_dev_remove(struct usb_interface *pusb_intf);
 	{USB_DEVICE(0x2019, 0xED17)},/* PCI - Edimax */ \
 	{USB_DEVICE(0x0DF6, 0x0052)},/* Sitecom - Edimax */ \
 	{USB_DEVICE(0x7392, 0x7811)},/* Edimax - Edimax */ \
+	{USB_DEVICE(0x07B8, 0x8188)},/* Abocom - Abocom */ \
 	{USB_DEVICE(0x07B8, 0x8189)},/* Abocom - Abocom */ \
 	{USB_DEVICE(0x0EB0, 0x9071)},/* NO Brand - Etop */ \
 	{USB_DEVICE(0x06F8, 0xE033)},/* Hercules - Edimax */ \
 	{USB_DEVICE(0x103C, 0x1629)},/* HP - Lite-On ,8188CUS Slim Combo */ \
 	{USB_DEVICE(0x2001, 0x3308)},/* D-Link - Alpha */ \
 	{USB_DEVICE(0x050D, 0x1102)},/* Belkin - Edimax */ \
-	{USB_DEVICE(0x050D, 0x11F2)},/* ISY - Edimax */ \
 	{USB_DEVICE(0x2019, 0xAB2A)},/* Planex - Abocom */ \
 	{USB_DEVICE(0x20F4, 0x648B)},/* TRENDnet - Cameo */ \
 	{USB_DEVICE(0x4855, 0x0090)},/*  - Feixun */ \
@@ -111,8 +111,6 @@ static void rtw_dev_remove(struct usb_interface *pusb_intf);
 	{USB_DEVICE(0x0BDA, 0x5088)},/* Thinkware - CC&C */ \
 	{USB_DEVICE(0x4856, 0x0091)},/* NetweeN - Feixun */ \
 	{USB_DEVICE(0x0846, 0x9041)}, /* Netgear - Cameo */ \
-	{USB_DEVICE(0x0846, 0x9042)}, /* On Networks - N150MA */ \
-	{USB_DEVICE(0x0846, 0x9043)}, /* Netgear N150 -WNA1000M */ \
 	{USB_DEVICE(0x2019, 0x4902)},/* Planex - Etop */ \
 	{USB_DEVICE(0x2019, 0xAB2E)},/* SW-WF02-AD15 -Abocom */ \
 	{USB_DEVICE(0x2001, 0x330B)}, /* D-LINK - T&W */ \
@@ -120,7 +118,6 @@ static void rtw_dev_remove(struct usb_interface *pusb_intf);
 	{USB_DEVICE(0x0B05, 0x17BA)}, /* ASUS - Edimax */ \
 	{USB_DEVICE(0x0BDA, 0x1E1E)}, /* Intel - - */ \
 	{USB_DEVICE(0x04BB, 0x094c)}, /* I-O DATA - Edimax */ \
-	{USB_DEVICE(0X0BDA, 0x8176)}, /* TP-Link TL-WN723N */ \
 	/****** 8188CTV ********/ \
 	{USB_DEVICE(0xCDAB, 0x8011)}, /* - - compare */ \
 	{USB_DEVICE(0x0BDA, 0x0A8A)}, /* Sony - Foxconn */ \
@@ -142,15 +139,17 @@ static void rtw_dev_remove(struct usb_interface *pusb_intf);
 	{USB_DEVICE(0x2001, 0x3307)},/* D-Link - Cameo */ \
 	{USB_DEVICE(0x2001, 0x330A)},/* D-Link - Alpha */ \
 	{USB_DEVICE(0x2001, 0x3309)},/* D-Link - Alpha */ \
-	{USB_DEVICE(0x2001, 0x330D)},/* D-Link - DWA 131 */ \
+	{USB_DEVICE(0x2001, 0x330D)},/* D-Link - Alpha(?)*/ \
 	{USB_DEVICE(0x0586, 0x341F)},/* Zyxel - Abocom */ \
 	{USB_DEVICE(0x7392, 0x7822)},/* Edimax - Edimax */ \
 	{USB_DEVICE(0x2019, 0xAB2B)},/* Planex - Abocom */ \
 	{USB_DEVICE(0x07B8, 0x8178)},/* Abocom - Abocom */ \
 	{USB_DEVICE(0x07AA, 0x0056)},/* ATKK - Gemtek */ \
 	{USB_DEVICE(0x4855, 0x0091)},/*  - Feixun */ \
+	{USB_DEVICE(0x050D, 0x11F2)},/* Belkin - Edimax */ \
 	{USB_DEVICE(0x050D, 0x2102)},/* Belkin - Sercomm */ \
 	{USB_DEVICE(0x050D, 0x2103)},/* Belkin - Edimax */ \
+	{USB_DEVICE(0x050D, 0x21F2)},/* Belkin - Edimax */ \
 	{USB_DEVICE(0x20F4, 0x624D)},/* TRENDnet */ \
 	{USB_DEVICE(0x0DF6, 0x0061)},/* Sitecom - Edimax */ \
 	{USB_DEVICE(0x0B05, 0x17AB)},/* ASUS - Edimax */ \
@@ -262,7 +261,7 @@ struct rtw_usb_drv rtl8192c_usb_drv = {
 	.usbdrv.suspend =  rtw_suspend,
 	.usbdrv.resume = rtw_resume,
 	#if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 22))
-	.usbdrv.reset_resume   = rtw_resume,
+  	.usbdrv.reset_resume   = rtw_resume,
 	#endif
 	#ifdef CONFIG_AUTOSUSPEND
 	.usbdrv.supports_autosuspend = 1,
@@ -292,7 +291,7 @@ struct rtw_usb_drv rtl8192d_usb_drv = {
 	.usbdrv.suspend =  rtw_suspend,
 	.usbdrv.resume = rtw_resume,
 	#if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 22))
-	.usbdrv.reset_resume   = rtw_resume,
+  	.usbdrv.reset_resume   = rtw_resume,
 	#endif
 	#ifdef CONFIG_AUTOSUSPEND
 	.usbdrv.supports_autosuspend = 1,
@@ -324,7 +323,7 @@ static inline int RT_usb_endpoint_xfer_int(const struct usb_endpoint_descriptor 
 
 static inline int RT_usb_endpoint_xfer_bulk(const struct usb_endpoint_descriptor *epd)
 {
-	return ((epd->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) == USB_ENDPOINT_XFER_BULK);
+ 	return ((epd->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) == USB_ENDPOINT_XFER_BULK);
 }
 
 static inline int RT_usb_endpoint_is_bulk_in(const struct usb_endpoint_descriptor *epd)
@@ -824,7 +823,7 @@ int rtw_hw_resume(_adapter *padapter)
 		netif_carrier_on(pnetdev);
 
 		if(!rtw_netif_queue_stopped(pnetdev))
-			rtw_netif_start_queue(pnetdev);
+      			rtw_netif_start_queue(pnetdev);
 		else
 			rtw_netif_wake_queue(pnetdev);
 
@@ -970,7 +969,7 @@ static int rtw_resume(struct usb_interface *pusb_intf)
 	 int ret = 0;
 
 	if(pwrpriv->bInternalAutoSuspend ){
-		ret = rtw_resume_process(padapter);
+ 		ret = rtw_resume_process(padapter);
 	} else {
 #ifdef CONFIG_RESUME_IN_WORKQUEUE
 		rtw_resume_in_workqueue(pwrpriv);
@@ -995,7 +994,7 @@ static int rtw_resume(struct usb_interface *pusb_intf)
 int rtw_resume_process(_adapter *padapter)
 {
 	struct net_device *pnetdev;
-	struct pwrctrl_priv *pwrpriv=NULL;
+	struct pwrctrl_priv *pwrpriv;
 	int ret = -1;
 	u32 start_time = rtw_get_current_time();
 	_func_enter_;
@@ -1058,8 +1057,7 @@ exit:
 	rtw_unlock_suspend();
 	#endif //CONFIG_RESUME_IN_WORKQUEUE
 
-	if (pwrpriv)
-		pwrpriv->bInSuspend = _FALSE;
+	pwrpriv->bInSuspend = _FALSE;
 	DBG_871X("<===  %s return %d.............. in %dms\n", __FUNCTION__
 		, ret, rtw_get_passing_time_ms(start_time));
 
@@ -1583,7 +1581,6 @@ static int __init rtw_drv_entry(void)
 	RT_TRACE(_module_hci_intfs_c_,_drv_err_,("+rtw_drv_entry\n"));
 
 	DBG_871X(DRV_NAME " driver version=%s\n", DRIVERVERSION);
-	DBG_871X("build time: %s %s\n", __DATE__, __TIME__);
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,24))
 	//console_suspend_enabled=0;
@@ -1658,3 +1655,4 @@ _adapter  *rtw_usb_get_sw_pointer(void)
 }
 EXPORT_SYMBOL(rtw_usb_get_sw_pointer);
 #endif	//CONFIG_INTEL_PROXIM
+
