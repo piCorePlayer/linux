@@ -37,12 +37,23 @@ typedef enum _HAL_PHYDM_OPS {
 #define rtw_phydm_func_disable_all(adapter)	\
 		rtw_phydm_ability_ops(adapter, HAL_PHYDM_DIS_ALL_FUNC, 0)
 
+#ifdef CONFIG_RTW_ACS
+#define rtw_phydm_func_for_offchannel(adapter) \
+		do { \
+			rtw_phydm_ability_ops(adapter, HAL_PHYDM_DIS_ALL_FUNC, 0); \
+			if (rtw_odm_adaptivity_needed(adapter)) \
+				rtw_phydm_ability_ops(adapter, HAL_PHYDM_FUNC_SET, ODM_BB_ADAPTIVITY); \
+			if (IS_ACS_ENABLE(adapter))\
+				rtw_phydm_ability_ops(adapter, HAL_PHYDM_FUNC_SET, ODM_BB_ENV_MONITOR); \
+		} while (0)
+#else
 #define rtw_phydm_func_for_offchannel(adapter) \
 		do { \
 			rtw_phydm_ability_ops(adapter, HAL_PHYDM_DIS_ALL_FUNC, 0); \
 			if (rtw_odm_adaptivity_needed(adapter)) \
 				rtw_phydm_ability_ops(adapter, HAL_PHYDM_FUNC_SET, ODM_BB_ADAPTIVITY); \
 		} while (0)
+#endif
 
 #define rtw_phydm_func_clr(adapter, ability)	\
 		rtw_phydm_ability_ops(adapter, HAL_PHYDM_FUNC_CLR, ability)
@@ -61,9 +72,6 @@ static inline u32 rtw_phydm_ability_get(_adapter *adapter)
 
 
 void rtw_odm_init_ic_type(_adapter *adapter);
-
-void rtw_odm_set_force_igi_lb(_adapter *adapter, u8 lb);
-u8 rtw_odm_get_force_igi_lb(_adapter *adapter);
 
 void rtw_odm_adaptivity_config_msg(void *sel, _adapter *adapter);
 

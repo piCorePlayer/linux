@@ -35,8 +35,5 @@ void rtl8723d_deinit_dm_priv(PADAPTER padapter);
 
 void rtl8723d_InitHalDm(PADAPTER padapter);
 void rtl8723d_HalDmWatchDog(PADAPTER padapter);
-void rtl8723d_HalDmWatchDog_in_LPS(PADAPTER padapter);
-void rtl8723d_hal_dm_in_lps(PADAPTER padapter);
-
 
 #endif

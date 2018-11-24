@@ -19,7 +19,7 @@
 #include <osdep_service.h>
 #include <drv_types.h>
 
-
+#ifdef CONFIG_RTW_SW_LED
 /* ********************************************************************************
  * Interface to manipulate LED objects.
  * ******************************************************************************** */
@@ -41,3 +41,4 @@
 #endif
 
 #endif
+#endif/*CONFIG_RTW_SW_LED*/

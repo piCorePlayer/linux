@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2016 - 2017 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2016 - 2018 Realtek Corporation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -224,7 +224,7 @@
 #define REG_FWFF_C2H_8197F 0x0298
 #define REG_FWFF_CTRL_8197F 0x029C
 #define REG_FWFF_PKT_INFO_8197F 0x02A0
-#define REG_FC2H_INFO_8197F 0x02A6
+#define REG_FC2H_INFO_8197F 0x02A4
 #define REG_DDMA_CH0SA_8197F 0x1200
 #define REG_DDMA_CH0DA_8197F 0x1204
 #define REG_DDMA_CH0CTRL_8197F 0x1208
@@ -429,6 +429,9 @@
 #define REG_SHCUT_LLC_OUI1_8197F 0x1490
 #define REG_SHCUT_LLC_OUI2_8197F 0x1494
 #define REG_SHCUT_LLC_OUI3_8197F 0x1498
+#define REG_CHNL_INFO_CTRL_8197F 0x14D0
+#define REG_CHNL_IDLE_TIME_8197F 0x14D4
+#define REG_CHNL_BUSY_TIME_8197F 0x14D8
 #define REG_EDCA_VO_PARAM_8197F 0x0500
 #define REG_EDCA_VI_PARAM_8197F 0x0504
 #define REG_EDCA_BE_PARAM_8197F 0x0508

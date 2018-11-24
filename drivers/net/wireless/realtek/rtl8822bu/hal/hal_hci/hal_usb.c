@@ -213,7 +213,7 @@ void usb_free_recv_priv(_adapter *padapter, u16 ini_in_buf_sz)
 		IF_DEQUEUE(&precvpriv->rx_indicate_queue, m);
 		if (m == NULL)
 			break;
-		m_freem(m);
+		rtw_os_pkt_free(m);
 	}
 	mtx_destroy(&precvpriv->rx_indicate_queue.ifq_mtx);
 #endif /* CONFIG_RX_INDICATE_QUEUE */

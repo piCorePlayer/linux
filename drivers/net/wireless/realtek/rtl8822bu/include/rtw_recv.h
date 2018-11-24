@@ -15,6 +15,10 @@
 #ifndef _RTW_RECV_H_
 #define _RTW_RECV_H_
 
+#define RTW_RX_MSDU_ACT_NONE		0
+#define RTW_RX_MSDU_ACT_INDICATE	BIT0
+#define RTW_RX_MSDU_ACT_FORWARD		BIT1
+
 #ifdef PLATFORM_OS_XP
 	#ifdef CONFIG_SDIO_HCI
 		#define NR_RECVBUFF 1024/* 512 */ /* 128 */
@@ -48,6 +52,13 @@
 
 	#ifdef CONFIG_RTW_NAPI
 		#define RTL_NAPI_WEIGHT (32)
+	#endif
+#endif
+
+#if defined(CONFIG_RTL8821C) && defined(CONFIG_SDIO_HCI) && defined(CONFIG_RECV_THREAD_MODE)
+	#ifdef NR_RECVBUFF
+	#undef NR_RECVBUFF
+	#define NR_RECVBUFF (32)
 	#endif
 #endif
 
@@ -91,6 +102,7 @@ static u8 rtw_bridge_tunnel_header[] = { 0xaa, 0xaa, 0x03, 0x00, 0x00, 0xf8 };
 /* for Rx reordering buffer control */
 struct recv_reorder_ctrl {
 	_adapter	*padapter;
+	u8 tid;
 	u8 enable;
 	u16 indicate_seq;/* =wstart_b, init_value=0xffff */
 	u16 wend_b;
@@ -103,6 +115,8 @@ struct recv_reorder_ctrl {
 
 struct	stainfo_rxcache	{
 	u16	tid_rxseq[16];
+	u8 iv[16][8];
+	u8 last_tid;
 #if 0
 	unsigned short	tid0_rxseq;
 	unsigned short	tid1_rxseq;
@@ -137,69 +151,6 @@ struct signal_stat {
 	u32	total_num;		/* num of valid elements */
 	u32	total_val;		/* sum of valid elements	 */
 };
-#if 0
-typedef struct _ODM_Phy_Status_Info_ {
-	/* */
-	/*  Be care, if you want to add any element please insert between */
-	/*  RxPWDBAll & SignalStrength. */
-	/* */
-#if (DM_ODM_SUPPORT_TYPE &  (ODM_WIN))
-	u4Byte		RxPWDBAll;
-#else
-	u1Byte		RxPWDBAll;
-#endif
-
-	u1Byte		SignalQuality;	 		/*  in 0-100 index. */
-	s1Byte		RxMIMOSignalQuality[4];	/* per-path's EVM */
-	u1Byte		RxMIMOEVMdbm[4]; 		/* per-path's EVM dbm */
-
-	u1Byte		RxMIMOSignalStrength[4];/*  in 0~100 index */
-
-	u2Byte		Cfo_short[4]; 			/*  per-path's Cfo_short */
-	u2Byte		Cfo_tail[4];			/*  per-path's Cfo_tail */
-
-#if (DM_ODM_SUPPORT_TYPE &  (ODM_WIN|ODM_CE))
-	s1Byte		RxPower;				/*  in dBm Translate from PWdB */
-	s1Byte		RecvSignalPower;		/*  Real power in dBm for this packet, no beautification and aggregation. Keep this raw info to be used for the other procedures. */
-	u1Byte		BTRxRSSIPercentage;
-	u1Byte		SignalStrength; 		/*  in 0-100 index. */
-
-	u1Byte		RxPwr[4];				/* per-path's pwdb */
-#endif
-	u1Byte		RxSNR[4];				/* per-path's SNR	 */
-	u1Byte		BandWidth;
-	u1Byte		btCoexPwrAdjust;
-} ODM_PHY_INFO_T, *PODM_PHY_INFO_T;
-#endif
-
-struct phy_info {
-	u8			RxPWDBAll;
-	u8			SignalQuality;				/* in 0-100 index. */
-	s8			RxMIMOSignalQuality[4];		/* per-path's EVM */
-	u8			RxMIMOEVMdbm[4];			/* per-path's EVM dbm */
-	u8			RxMIMOSignalStrength[4];	/* in 0~100 index */
-	s16			Cfo_short[4];				/* per-path's Cfo_short */
-	s16			Cfo_tail[4];					/* per-path's Cfo_tail */
-	s8			RxPower;					/* in dBm Translate from PWdB */
-	s8			RecvSignalPower;			/* Real power in dBm for this packet, no beautification and aggregation. Keep this raw info to be used for the other procedures. */
-	u8			BTRxRSSIPercentage;
-	u8			SignalStrength;				/* in 0-100 index. */
-	s8			RxPwr[4];					/* per-path's pwdb */
-	s8			RxSNR[4];
-#if ((RTL8822B_SUPPORT == 1) || (RTL8723D_SUPPORT == 1) || (RTL8821C_SUPPORT == 1))
-	u8			RxCount:2;
-	u8			BandWidth:2;
-	u8			rxsc:4;
-#else
-	u8			BandWidth;
-#endif
-	u8			btCoexPwrAdjust;
-#if ((RTL8822B_SUPPORT == 1) || (RTL8723D_SUPPORT == 1) || (RTL8821C_SUPPORT == 1))
-	u8			channel;						/* channel number---*/
-	BOOLEAN		bMuPacket;					/* is MU packet or not---*/
-	BOOLEAN		bBeamformed;
-#endif
-};
 
 struct rx_raw_rssi {
 	u8 data_rate;
@@ -213,6 +164,8 @@ struct rx_raw_rssi {
 	u8 ofdm_snr[4];
 };
 
+
+#include "cmn_info/rtw_sta_info.h"
 
 struct rx_pkt_attrib	{
 	u16	pkt_len;
@@ -245,14 +198,15 @@ struct rx_pkt_attrib	{
 	u8	ta[ETH_ALEN];
 	u8	ra[ETH_ALEN];
 	u8	bssid[ETH_ALEN];
+#ifdef CONFIG_RTW_MESH
+	u8	msa[ETH_ALEN]; /* mesh sa */
+	u8	mda[ETH_ALEN]; /* mesh da */
+	u8 mesh_ctrl_present;
+	u8	mesh_ctrl_len; /* length of mesh control field */
+#endif
 
 	u8	ack_policy;
 
-/* #ifdef CONFIG_TCP_CSUM_OFFLOAD_RX */
-	u8	tcpchk_valid; /* 0: invalid, 1: valid */
-	u8	ip_chkrpt; /* 0: incorrect, 1: correct */
-	u8	tcp_chkrpt; /* 0: incorrect, 1: correct */
-/* #endif */
 	u8	key_index;
 
 	u8	data_rate;
@@ -264,17 +218,16 @@ struct rx_pkt_attrib	{
 	u8	pkt_rpt_type;
 	u32 tsfl;
 	u32	MacIDValidEntry[2];	/* 64 bits present 64 entry. */
-
-#if 0
-	u8	signal_qual;
-	s8	rx_mimo_signal_qual[2];
-	u8	signal_strength;
-	u32	RxPWDBAll;
-	s32	RecvSignalPower;
-#endif
-	struct phy_info phy_info;
+	u8	ppdu_cnt;
+	u32 	free_cnt;		/* free run counter */
+	struct phydm_phyinfo_struct phy_info;
 };
 
+#ifdef CONFIG_RTW_MESH
+#define RATTRIB_GET_MCTRL_LEN(rattrib) ((rattrib)->mesh_ctrl_len)
+#else
+#define RATTRIB_GET_MCTRL_LEN(rattrib) 0
+#endif
 
 /* These definition is used for Rx packet reordering. */
 #define SN_LESS(a, b)		(((a-b) & 0x800) != 0)
@@ -362,6 +315,11 @@ accesser of recv_priv: rtw_recv_entry(dispatch / passive level); recv_thread(pas
 
 using enter_critical section to protect
 */
+
+#ifndef DBG_RX_BH_TRACKING
+#define DBG_RX_BH_TRACKING 0
+#endif
+
 struct recv_priv {
 	_lock	lock;
 
@@ -380,6 +338,17 @@ struct recv_priv {
 	u8 *precv_frame_buf;
 
 	uint free_recvframe_cnt;
+
+	#if DBG_RX_BH_TRACKING
+	u32 rx_bh_stage;
+	u32 rx_bh_buf_dq_cnt;
+	void *rx_bh_lbuf;
+	void *rx_bh_cbuf;
+	void *rx_bh_cbuf_data;
+	u32 rx_bh_cbuf_dlen;
+	u32 rx_bh_cbuf_pos;
+	void *rx_bh_cframe;
+	#endif
 
 	_adapter	*adapter;
 
@@ -400,6 +369,14 @@ struct recv_priv {
 	u64	rx_bytes;
 	u64	rx_pkts;
 	u64	rx_drop;
+
+	u64 dbg_rx_drop_count;
+	u64 dbg_rx_ampdu_drop_count;
+	u64 dbg_rx_ampdu_forced_indicate_count;
+	u64 dbg_rx_ampdu_loss_count;
+	u64 dbg_rx_dup_mgt_frame_drop_count;
+	u64 dbg_rx_ampdu_window_shift_cnt;
+	u64 dbg_rx_conflic_mac_addr_cnt;
 
 	uint  rx_icv_err;
 	uint  rx_largepacket_crcerr;
@@ -466,7 +443,6 @@ struct recv_priv {
 	s8 rssi;	/* translate_percentage_to_dbm(ptarget_wlan->network.PhyInfo.SignalStrength); */
 	struct rx_raw_rssi raw_rssi_info;
 	/* s8 rxpwdb;	 */
-	s16 noise;
 	/* int RxSNRdB[2]; */
 	/* s8 RxRssi[2]; */
 	/* int FalseAlmCnt_all; */
@@ -487,6 +463,30 @@ struct recv_priv {
 	BOOLEAN store_law_data_flag;
 };
 
+#define RX_BH_STG_UNKNOWN		0
+#define RX_BH_STG_HDL_ENTER		1
+#define RX_BH_STG_HDL_EXIT		2
+#define RX_BH_STG_NEW_BUF		3
+#define RX_BH_STG_NEW_FRAME		4
+#define RX_BH_STG_NORMAL_RX		5
+#define RX_BH_STG_NORMAL_RX_END	6
+#define RX_BH_STG_C2H			7
+#define RX_BH_STG_C2H_END		8
+
+#if DBG_RX_BH_TRACKING
+void rx_bh_tk_set_stage(struct recv_priv *recv, u32 s);
+void rx_bh_tk_set_buf(struct recv_priv *recv, void *buf, void *data, u32 dlen);
+void rx_bh_tk_set_buf_pos(struct recv_priv *recv, void *pos);
+void rx_bh_tk_set_frame(struct recv_priv *recv, void *frame);
+void dump_rx_bh_tk(void *sel, struct recv_priv *recv);
+#else
+#define rx_bh_tk_set_stage(recv, s) do {} while (0)
+#define rx_bh_tk_set_buf(recv, buf, data, dlen) do {} while (0)
+#define rx_bh_tk_set_buf_pos(recv, pos) do {} while (0)
+#define rx_bh_tk_set_frame(recv, frame) do {} while (0)
+#define dump_rx_bh_tk(sel, recv) do {} while (0)
+#endif
+
 #ifdef CONFIG_NEW_SIGNAL_STAT_PROCESS
 #define rtw_set_signal_stat_timer(recvpriv) _set_timer(&(recvpriv)->signal_stat_timer, (recvpriv)->signal_stat_sampling_interval)
 #endif /* CONFIG_NEW_SIGNAL_STAT_PROCESS */
@@ -500,6 +500,7 @@ struct sta_recv_priv {
 	_queue defrag_q;	 /* keeping the fragment frame until defrag */
 
 	struct	stainfo_rxcache rxcache;
+	u16	bmc_tid_rxseq[16];
 
 	/* uint	sta_rx_bytes; */
 	/* uint	sta_rx_pkts; */
@@ -547,12 +548,11 @@ struct recv_buf {
 
 #endif
 
-#ifdef PLATFORM_LINUX
-	_pkt	*pskb;
-#endif
-#ifdef PLATFORM_FREEBSD /* skb solution */
+#if defined(PLATFORM_LINUX)
+	_pkt *pskb;
+#elif defined(PLATFORM_FREEBSD) /* skb solution */
 	struct sk_buff *pskb;
-#endif /* PLATFORM_FREEBSD */ /* skb solution */
+#endif
 };
 
 
@@ -573,13 +573,7 @@ struct recv_buf {
 */
 struct recv_frame_hdr {
 	_list	list;
-#ifndef CONFIG_BSD_RX_USE_MBUF
-	struct sk_buff	*pkt;
-	struct sk_buff	*pkt_newalloc;
-#else /* CONFIG_BSD_RX_USE_MBUF */
-	_pkt	*pkt;
-	_pkt *pkt_newalloc;
-#endif /* CONFIG_BSD_RX_USE_MBUF */
+	_pkt *pkt;
 
 	_adapter  *adapter;
 
@@ -653,7 +647,9 @@ sint rtw_enqueue_recvbuf_to_head(struct recv_buf *precvbuf, _queue *queue);
 sint rtw_enqueue_recvbuf(struct recv_buf *precvbuf, _queue *queue);
 struct recv_buf *rtw_dequeue_recvbuf(_queue *queue);
 
+#if defined(CONFIG_80211N_HT) && defined(CONFIG_RECV_REORDERING_CTRL)
 void rtw_reordering_ctrl_timeout_handler(void *pcontext);
+#endif
 
 void rx_query_phy_status(union recv_frame *rframe, u8 *phy_stat);
 int rtw_inc_and_chk_continual_no_rx_packet(struct sta_info *sta, int tid_index);
@@ -880,13 +876,14 @@ __inline static s32 translate_percentage_to_dbm(u32 SignalStrengthIndex)
 	return SignalPower;
 }
 
-
 struct sta_info;
 
 extern void _rtw_init_sta_recv_priv(struct sta_recv_priv *psta_recvpriv);
 
 extern void  mgt_dispatcher(_adapter *padapter, union recv_frame *precv_frame);
 
+u8 adapter_allow_bmc_data_rx(_adapter *adapter);
 s32 pre_recv_entry(union recv_frame *precvframe, u8 *pphy_status);
+void count_rx_stats(_adapter *padapter, union recv_frame *prframe, struct sta_info *sta);
 
 #endif

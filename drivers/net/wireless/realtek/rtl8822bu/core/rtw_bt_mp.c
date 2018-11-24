@@ -466,7 +466,7 @@ MPTBT_FwC2hBtMpCtrl(
 	PMPT_CONTEXT	pMptCtx = &(Adapter->mppriv.mpt_ctx);
 	PBT_EXT_C2H pExtC2h = (PBT_EXT_C2H)tmpBuf;
 
-	if (Adapter->bBTFWReady == _FALSE || Adapter->registrypriv.mp_mode == 0) {
+	if (GET_HAL_DATA(Adapter)->bBTFWReady == _FALSE || Adapter->registrypriv.mp_mode == 0) {
 		/* RTW_INFO("Ignore C2H BT MP Info since not in MP mode\n"); */
 		return;
 	}

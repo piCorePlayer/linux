@@ -101,7 +101,7 @@ struct beamformee_entry {
 	/* Used to fill Reg6E4 to fill Mac address of CSI report frame */
 	u8 mac_addr[ETH_ALEN];
 	/* Sounding BandWidth */
-	CHANNEL_WIDTH sound_bw;
+	enum channel_width sound_bw;
 	u16 sound_period;
 
 	enum beamforming_cap cap;
@@ -116,7 +116,7 @@ struct beamformee_entry {
 	u8 bApplySounding;
 
 	/* information for sounding judgement */
-	u32 tx_timestamp;
+	systime tx_timestamp;
 	u64 tx_bytes;
 
 	u16 LogStatusFailCnt:5;	/* 0~21 */
@@ -328,7 +328,7 @@ struct beamforming_entry {
 	u16	p_aid;		/* Used to fill Reg42C & Reg714 to compare with P_AID of Tx DESC. */
 	u16 g_id;
 	u8	mac_addr[6];/* Used to fill Reg6E4 to fill Mac address of CSI report frame. */
-	CHANNEL_WIDTH	sound_bw;	/* Sounding BandWidth */
+	enum channel_width	sound_bw;	/* Sounding BandWidth */
 	u16	sound_period;
 	BEAMFORMING_CAP	beamforming_entry_cap;
 	BEAMFORMING_ENTRY_STATE	beamforming_entry_state;
@@ -346,7 +346,7 @@ struct beamforming_entry {
 
 struct sounding_info {
 	u8				sound_idx;
-	CHANNEL_WIDTH	sound_bw;
+	enum channel_width	sound_bw;
 	SOUNDING_MODE	sound_mode;
 	u16				sound_period;
 };
@@ -371,8 +371,8 @@ BEAMFORMING_CAP beamforming_get_entry_beam_cap_by_mac_id(PVOID pmlmepriv , u8 ma
 void	beamforming_notify(PADAPTER adapter);
 BEAMFORMING_CAP beamforming_get_beamform_cap(struct beamforming_info	*pBeamInfo);
 
-BOOLEAN	beamforming_send_ht_ndpa_packet(PADAPTER Adapter, u8 *ra, CHANNEL_WIDTH bw, u8 qidx);
-BOOLEAN	beamforming_send_vht_ndpa_packet(PADAPTER Adapter, u8 *ra, u16 aid, CHANNEL_WIDTH bw, u8 qidx);
+BOOLEAN	beamforming_send_ht_ndpa_packet(PADAPTER Adapter, u8 *ra, enum channel_width bw, u8 qidx);
+BOOLEAN	beamforming_send_vht_ndpa_packet(PADAPTER Adapter, u8 *ra, u16 aid, enum channel_width bw, u8 qidx);
 
 void	beamforming_check_sounding_success(PADAPTER Adapter, BOOLEAN status);
 

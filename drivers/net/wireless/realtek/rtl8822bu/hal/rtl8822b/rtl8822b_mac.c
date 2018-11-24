@@ -56,65 +56,9 @@ inline u8 rtl8822b_rcr_config(PADAPTER p, u32 rcr)
 	return _TRUE;
 }
 
-inline u8 rtl8822b_rcr_get(PADAPTER p, u32 *rcr)
-{
-	u32 v32;
-
-	v32 = rtw_read32(p, REG_RCR_8822B);
-	if (rcr)
-		*rcr = v32;
-	GET_HAL_DATA(p)->ReceiveConfig = v32;
-	return _TRUE;
-}
-
-inline u8 rtl8822b_rcr_check(PADAPTER p, u32 check_bit)
-{
-	PHAL_DATA_TYPE hal;
-	u32 rcr;
-
-	hal = GET_HAL_DATA(p);
-	rcr = hal->ReceiveConfig;
-	if ((rcr & check_bit) == check_bit)
-		return _TRUE;
-
-	return _FALSE;
-}
-
-inline u8 rtl8822b_rcr_add(PADAPTER p, u32 add)
-{
-	PHAL_DATA_TYPE hal;
-	u32 rcr;
-	u8 ret = _TRUE;
-
-	hal = GET_HAL_DATA(p);
-
-	rcr = hal->ReceiveConfig;
-	rcr |= add;
-	if (rcr != hal->ReceiveConfig)
-		ret = rtl8822b_rcr_config(p, rcr);
-
-	return ret;
-}
-
-inline u8 rtl8822b_rcr_clear(PADAPTER p, u32 clear)
-{
-	PHAL_DATA_TYPE hal;
-	u32 rcr;
-	u8 ret = _TRUE;
-
-	hal = GET_HAL_DATA(p);
-
-	rcr = hal->ReceiveConfig;
-	rcr &= ~clear;
-	if (rcr != hal->ReceiveConfig)
-		ret = rtl8822b_rcr_config(p, rcr);
-
-	return ret;
-}
-
 inline u8 rtl8822b_rx_ba_ssn_appended(PADAPTER p)
 {
-	return rtl8822b_rcr_check(p, BIT_APP_BASSN_8822B);
+	return rtw_hal_rcr_check(p, BIT_APP_BASSN_8822B);
 }
 
 inline u8 rtl8822b_rx_fcs_append_switch(PADAPTER p, u8 enable)
@@ -124,16 +68,16 @@ inline u8 rtl8822b_rx_fcs_append_switch(PADAPTER p, u8 enable)
 
 	rcr_bit = BIT_APP_FCS_8822B;
 	if (_TRUE == enable)
-		ret = rtl8822b_rcr_add(p, rcr_bit);
+		ret = rtw_hal_rcr_add(p, rcr_bit);
 	else
-		ret = rtl8822b_rcr_clear(p, rcr_bit);
+		ret = rtw_hal_rcr_clear(p, rcr_bit);
 
 	return ret;
 }
 
 inline u8 rtl8822b_rx_fcs_appended(PADAPTER p)
 {
-	return rtl8822b_rcr_check(p, BIT_APP_FCS_8822B);
+	return rtw_hal_rcr_check(p, BIT_APP_FCS_8822B);
 }
 
 inline u8 rtl8822b_rx_tsf_addr_filter_config(PADAPTER p, u8 config)
@@ -212,4 +156,61 @@ s32 rtl8822b_fw_dl(PADAPTER adapter, u8 wowlan)
 		RTW_ERR("%s Download Firmware from %s failed\n", __FUNCTION__, (fw_bin) ? "file" : "array");
 		return _FAIL;
 	}
+}
+
+u8 rtl8822b_get_rx_drv_info_size(struct _ADAPTER *a)
+{
+	struct dvobj_priv *d;
+	u8 size = 80;	/* HALMAC_RX_DESC_DUMMY_SIZE_MAX_88XX */
+	int err = 0;
+
+
+	d = adapter_to_dvobj(a);
+
+	err = rtw_halmac_get_rx_drv_info_sz(d, &size);
+	if (err) {
+		RTW_WARN(FUNC_ADPT_FMT ": Fail to get DRV INFO size!!(err=%d)\n",
+			 FUNC_ADPT_ARG(a), err);
+		size = 80;
+	}
+
+	return size;
+}
+
+u32 rtl8822b_get_tx_desc_size(struct _ADAPTER *a)
+{
+	struct dvobj_priv *d;
+	u32 size = 48;	/* HALMAC_TX_DESC_SIZE_8822B */
+	int err = 0;
+
+
+	d = adapter_to_dvobj(a);
+
+	err = rtw_halmac_get_tx_desc_size(d, &size);
+	if (err) {
+		RTW_WARN(FUNC_ADPT_FMT ": Fail to get TX Descriptor size!!(err=%d)\n",
+			 FUNC_ADPT_ARG(a), err);
+		size = 48;
+	}
+
+	return size;
+}
+
+u32 rtl8822b_get_rx_desc_size(struct _ADAPTER *a)
+{
+	struct dvobj_priv *d;
+	u32 size = 24;	/* HALMAC_RX_DESC_SIZE_8822B */
+	int err = 0;
+
+
+	d = adapter_to_dvobj(a);
+
+	err = rtw_halmac_get_rx_desc_size(d, &size);
+	if (err) {
+		RTW_WARN(FUNC_ADPT_FMT ": Fail to get RX Descriptor size!!(err=%d)\n",
+			 FUNC_ADPT_ARG(a), err);
+		size = 24;
+	}
+
+	return size;
 }

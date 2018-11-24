@@ -97,39 +97,7 @@ struct mp_tx {
 
 #define MP_MAX_LINES		1000
 #define MP_MAX_LINES_BYTES	256
-#define u1Byte u8
-#define s1Byte s8
-#define u4Byte u32
-#define s4Byte s32
-#define u1Byte		u8
-#define pu1Byte		u8*
 
-#define u2Byte		u16
-#define pu2Byte		u16*
-
-#define u4Byte		u32
-#define pu4Byte		u32*
-
-#define u8Byte		u64
-#define pu8Byte		u64*
-
-#define s1Byte		s8
-#define ps1Byte		s8*
-
-#define s2Byte		s16
-#define ps2Byte		s16*
-
-#define s4Byte		s32
-#define ps4Byte		s32*
-
-#define s8Byte		s64
-#define ps8Byte		s64*
-
-#define UCHAR u8
-#define USHORT u16
-#define UINT u32
-#define ULONG u32
-#define PULONG u32*
 
 typedef struct _RT_PMAC_PKT_INFO {
 	UCHAR			MCS;
@@ -303,6 +271,7 @@ enum {
 	MP_STOP,
 	MP_RATE,
 	MP_CHANNEL,
+	MP_CHL_OFFSET,
 	MP_BANDWIDTH,
 	MP_TXPOWER,
 	MP_ANT_TX,
@@ -337,8 +306,10 @@ enum {
 	MP_CUSTOMER_STR,
 	MP_PWRLMT,
 	MP_PWRBYRATE,
-	MP_NULL,
+	BT_EFUSE_FILE,
 	MP_SetBT,
+	MP_SWRFPath,
+	MP_NULL,
 #ifdef CONFIG_APPEND_VENDOR_IE_ENABLE
 	VENDOR_IE_SET ,
 	VENDOR_IE_GET ,
@@ -405,6 +376,9 @@ struct mp_priv {
 	u8 mac_filter[ETH_ALEN];
 	u8 bmac_filter;
 
+	/* RF PATH Setting for WLG WLA BTG BT */
+	u8 rf_path_cfg;
+
 	struct wlan_network mp_network;
 	NDIS_802_11_MAC_ADDRESS network_macaddr;
 
@@ -442,6 +416,7 @@ struct mp_priv {
 	BOOLEAN bRTWSmbCfg;
 	BOOLEAN bloopback;
 	BOOLEAN bloadefusemap;
+	BOOLEAN bloadBTefusemap;
 
 	MPT_CONTEXT	mpt_ctx;
 
@@ -729,7 +704,9 @@ extern u32 read_bbreg(_adapter *padapter, u32 addr, u32 bitmask);
 extern void write_bbreg(_adapter *padapter, u32 addr, u32 bitmask, u32 val);
 extern u32 read_rfreg(PADAPTER padapter, u8 rfpath, u32 addr);
 extern void write_rfreg(PADAPTER padapter, u8 rfpath, u32 addr, u32 val);
-
+#ifdef CONFIG_ANTENNA_DIVERSITY
+u8 rtw_mp_set_antdiv(PADAPTER padapter, BOOLEAN bMain);
+#endif
 void	SetChannel(PADAPTER pAdapter);
 void	SetBandwidth(PADAPTER pAdapter);
 int	SetTxPower(PADAPTER pAdapter);
@@ -776,6 +753,7 @@ void hal_mpt_SetSingleToneTx(PADAPTER pAdapter, u8 bStart);
 void hal_mpt_SetCarrierSuppressionTx(PADAPTER pAdapter, u8 bStart);
 void mpt_ProSetPMacTx(PADAPTER	Adapter);
 void MP_PHY_SetRFPathSwitch(PADAPTER pAdapter , BOOLEAN bMain);
+void mp_phy_switch_rf_path_set(PADAPTER pAdapter , u8 *pstate);
 u8 MP_PHY_QueryRFPathSwitch(PADAPTER pAdapter);
 ULONG mpt_ProQueryCalTxPower(PADAPTER	pAdapter, u8 RfPath);
 void MPT_PwrCtlDM(PADAPTER padapter, u32 bstart);
@@ -845,6 +823,9 @@ int rtw_mp_rate(struct net_device *dev,
 int rtw_mp_channel(struct net_device *dev,
 		struct iw_request_info *info,
 		struct iw_point *wrqu, char *extra);
+int rtw_mp_ch_offset(struct net_device *dev,
+		struct iw_request_info *info,
+		struct iw_point *wrqu, char *extra);
 int rtw_mp_bandwidth(struct net_device *dev,
 		struct iw_request_info *info,
 		struct iw_point *wrqu, char *extra);
@@ -902,6 +883,9 @@ int rtw_mp_phypara(struct net_device *dev,
 int rtw_mp_SetRFPath(struct net_device *dev,
 		struct iw_request_info *info,
 		struct iw_point *wrqu, char *extra);
+int rtw_mp_switch_rf_path(struct net_device *dev,
+			struct iw_request_info *info,
+			struct iw_point *wrqu, char *extra);
 int rtw_mp_QueryDrv(struct net_device *dev,
 		struct iw_request_info *info,
 		union iwreq_data *wrqu, char *extra);
@@ -926,6 +910,9 @@ int rtw_efuse_mask_file(struct net_device *dev,
 int rtw_efuse_file_map(struct net_device *dev,
 		struct iw_request_info *info,
 		union iwreq_data *wrqu, char *extra);
+int rtw_bt_efuse_file_map(struct net_device *dev,
+		struct iw_request_info *info,
+		union iwreq_data *wrqu, char *extra);
 int rtw_mp_SetBT(struct net_device *dev,
 		struct iw_request_info *info,
 		union iwreq_data *wrqu, char *extra);
@@ -943,7 +930,7 @@ u8 HwRateToMPTRate(u8 rate);
 int rtw_mp_iqk(struct net_device *dev,
 		 struct iw_request_info *info,
 		 struct iw_point *wrqu, char *extra);
-int rtw_mp_lck(struct net_device *dev, 
-		struct iw_request_info *info, 
+int rtw_mp_lck(struct net_device *dev,
+		struct iw_request_info *info,
 		struct iw_point *wrqu, char *extra);
 #endif /* _RTW_MP_H_ */

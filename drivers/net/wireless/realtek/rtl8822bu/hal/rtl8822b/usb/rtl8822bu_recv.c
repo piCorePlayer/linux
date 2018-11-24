@@ -44,12 +44,14 @@ static u8 recvbuf2recvframe_proccess_normal_rx
 (PADAPTER padapter, u8 *pbuf, struct rx_pkt_attrib *pattrib, union recv_frame *precvframe, _pkt *pskb)
 {
 	u8 ret = _SUCCESS;
-	u8 *pphy_status = NULL;
 	struct recv_priv *precvpriv = &padapter->recvpriv;
 	_queue *pfree_recv_queue = &precvpriv->free_recv_queue;
 
 #ifdef CONFIG_RX_PACKET_APPEND_FCS
-	pattrib->pkt_len -= IEEE80211_FCS_LEN;
+	if (check_fwstate(&padapter->mlmepriv, WIFI_MONITOR_STATE) == _FALSE) {
+		if (rtl8822b_rx_fcs_appended(padapter))
+			pattrib->pkt_len -= IEEE80211_FCS_LEN;
+	}
 #endif
 
 	if (rtw_os_alloc_recvframe(padapter, precvframe,
@@ -62,17 +64,7 @@ static u8 recvbuf2recvframe_proccess_normal_rx
 
 	recvframe_put(precvframe, pattrib->pkt_len);
 
-	if (pattrib->physt)
-		pphy_status = (pbuf + RXDESC_OFFSET);
-
-#ifdef CONFIG_CONCURRENT_MODE
-	pre_recv_entry(precvframe, pphy_status);
-#endif /* CONFIG_CONCURRENT_MODE */
-
-	if (pattrib->physt && pphy_status)
-		rx_query_phy_status(precvframe, pphy_status);
-
-	rtw_recv_entry(precvframe);
+	pre_recv_entry(precvframe, pattrib->physt ? (pbuf + RXDESC_OFFSET) : NULL);
 
 exit:
 	return ret;

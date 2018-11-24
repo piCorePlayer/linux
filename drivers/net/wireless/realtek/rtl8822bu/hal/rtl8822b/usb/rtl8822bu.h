@@ -36,11 +36,11 @@ void rtl8822bu_interface_configure(PADAPTER);
 int rtl8822bu_halmac_init_adapter(PADAPTER);
 
 /* rtl8822bu_io.c */
-
+#ifdef CONFIG_RTW_SW_LED
 /* rtl8822bu_led.c */
 void rtl8822bu_initswleds(PADAPTER);
 void rtl8822bu_deinitswleds(PADAPTER);
-
+#endif
 /* rtl8822bu_xmit.c */
 #define OFFSET_SZ 0
 #define MAX_TX_AGG_PACKET_NUMBER_8822B 0xff

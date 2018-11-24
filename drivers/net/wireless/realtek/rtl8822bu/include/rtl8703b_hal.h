@@ -227,7 +227,7 @@ VOID Hal_EfuseParseBoardType_8703B(PADAPTER Adapter,	u8	*PROMContent, BOOLEAN Au
 
 void rtl8703b_set_hal_ops(struct hal_ops *pHalFunc);
 void init_hal_spec_8703b(_adapter *adapter);
-void SetHwReg8703B(PADAPTER padapter, u8 variable, u8 *val);
+u8 SetHwReg8703B(PADAPTER padapter, u8 variable, u8 *val);
 void GetHwReg8703B(PADAPTER padapter, u8 variable, u8 *val);
 u8 SetHalDefVar8703B(PADAPTER padapter, HAL_DEF_VARIABLE variable, void *pval);
 u8 GetHalDefVar8703B(PADAPTER padapter, HAL_DEF_VARIABLE variable, void *pval);

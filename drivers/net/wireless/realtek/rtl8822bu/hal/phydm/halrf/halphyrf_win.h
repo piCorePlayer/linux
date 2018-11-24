@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2011 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2007 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,28 +11,45 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 
 #ifndef __HAL_PHY_RF_H__
 #define __HAL_PHY_RF_H__
 
 #if (RTL8814A_SUPPORT == 1)
-	#include "halrf/rtl8814a/halrf_iqk_8814a.h"
+    #if RT_PLATFORM == PLATFORM_MACOSX
+        #include "rtl8814a/halrf_iqk_8814a.h"
+    #else
+        #include "halrf/rtl8814a/halrf_iqk_8814a.h"
+    #endif
 #endif
 
 #if (RTL8822B_SUPPORT == 1)
-	#include "halrf/rtl8822b/halrf_iqk_8822b.h"
-	#include "../mac/Halmac_type.h"
+    #if RT_PLATFORM == PLATFORM_MACOSX
+        #include "rtl8822b/halrf_iqk_8822b.h"
+        #include "../../MAC/Halmac_type.h"
+    #else
+        #include "halrf/rtl8822b/halrf_iqk_8822b.h"
+        #include "../mac/Halmac_type.h"
+    #endif
 #endif
-#include "halrf/halrf_powertracking_win.h"
-#include "halrf/halrf_kfree.h"
+
+#if RT_PLATFORM == PLATFORM_MACOSX
+    #include "halrf_powertracking_win.h"
+    #include "halrf_kfree.h"
+    #include "halrf_txgapcal.h"
+#else
+    #include "halrf/halrf_powertracking_win.h"
+    #include "halrf/halrf_kfree.h"
+    #include "halrf/halrf_txgapcal.h"
+#endif
+
 #if (RTL8821C_SUPPORT == 1)
-	#include "halrf/rtl8821c/halrf_iqk_8821c.h"
+    #if RT_PLATFORM == PLATFORM_MACOSX
+        #include "rtl8821c/halrf_iqk_8821c.h"
+    #else
+        #include "halrf/rtl8821c/halrf_iqk_8821c.h"
+    #endif
 #endif
 
 enum spur_cal_method {
@@ -58,7 +75,7 @@ typedef void (*func_swing_xtal)(void *, s8 **, s8 **);
 typedef void (*func_set_xtal)(void *);
 typedef void(*func_all_swing)(void *, u8 **, u8 **, u8 **, u8 **, u8 **, u8 **, u8 **, u8 **);
 
-struct _TXPWRTRACK_CFG {
+struct txpwrtrack_cfg {
 	u8		swing_table_size_cck;
 	u8		swing_table_size_ofdm;
 	u8		threshold_iqk;
@@ -78,22 +95,22 @@ struct _TXPWRTRACK_CFG {
 
 void
 configure_txpower_track(
-	struct PHY_DM_STRUCT		*p_dm_odm,
-	struct _TXPWRTRACK_CFG	*p_config
+	struct dm_struct		*dm,
+	struct txpwrtrack_cfg	*config
 );
 
 
 void
 odm_clear_txpowertracking_state(
-	struct PHY_DM_STRUCT		*p_dm_odm
+	struct dm_struct		*dm
 );
 
 void
 odm_txpowertracking_callback_thermal_meter(
 #if (DM_ODM_SUPPORT_TYPE & ODM_AP)
-	struct PHY_DM_STRUCT		*p_dm_odm
+	struct dm_struct		*dm
 #else
-	struct _ADAPTER	*adapter
+	void	*adapter
 #endif
 );
 
@@ -104,15 +121,15 @@ odm_txpowertracking_callback_thermal_meter(
 
 void
 odm_reset_iqk_result(
-	struct PHY_DM_STRUCT	*p_dm_odm
+	struct dm_struct	*dm
 );
 u8
 odm_get_right_chnl_place_for_iqk(
 	u8 chnl
 );
 
-void odm_iq_calibrate(struct PHY_DM_STRUCT	*p_dm_odm);
-void phydm_rf_init(struct PHY_DM_STRUCT		*p_dm_odm);
-void phydm_rf_watchdog(struct PHY_DM_STRUCT		*p_dm_odm);
+void odm_iq_calibrate(struct dm_struct	*dm);
+void phydm_rf_init(struct dm_struct		*dm);
+void phydm_rf_watchdog(struct dm_struct		*dm);
 
 #endif	/*  #ifndef __HAL_PHY_RF_H__ */

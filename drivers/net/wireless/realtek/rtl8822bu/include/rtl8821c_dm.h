@@ -19,7 +19,5 @@ void rtl8821c_phy_init_dm_priv(PADAPTER);
 void rtl8821c_phy_deinit_dm_priv(PADAPTER);
 void rtl8821c_phy_init_haldm(PADAPTER);
 void rtl8821c_phy_haldm_watchdog(PADAPTER);
-void rtl8821c_phy_haldm_in_lps(PADAPTER);
-void rtl8821c_phy_haldm_watchdog_in_lps(PADAPTER);
 
 #endif

@@ -21,5 +21,7 @@
 
 /* rtl8822be_ops.c */
 void UpdateInterruptMask8822BE(PADAPTER, u32 AddMSR, u32 AddMSR1, u32 RemoveMSR, u32 RemoveMSR1);
+u16 get_txbd_rw_reg(u16 q_idx);
+
 
 #endif /* _RTL8822BE_HAL_H_ */

@@ -37,6 +37,13 @@ int usbctrl_vendorreq(struct intf_hdl *pintfhdl, u8 request, u16 value, u16 inde
 	u8 *pIo_buf;
 	int vendorreq_times = 0;
 
+#if (defined(CONFIG_RTL8822B) || defined(CONFIG_RTL8821C))
+#define REG_ON_SEC 0x00
+#define REG_OFF_SEC 0x01
+#define REG_LOCAL_SEC 0x02
+	u8 current_reg_sec = REG_LOCAL_SEC;
+#endif
+
 #ifdef CONFIG_USB_VENDOR_REQ_BUFFER_DYNAMIC_ALLOCATE
 	u8 *tmp_buf;
 #else /* use stack memory */
@@ -57,7 +64,7 @@ int usbctrl_vendorreq(struct intf_hdl *pintfhdl, u8 request, u16 value, u16 inde
 	}
 
 #ifdef CONFIG_USB_VENDOR_REQ_MUTEX
-	_enter_critical_mutex(&pdvobjpriv->usb_vendor_req_mutex, NULL);
+	_enter_critical_mutex_lock(&pdvobjpriv->usb_vendor_req_mutex, NULL);
 #endif
 
 
@@ -140,6 +147,38 @@ int usbctrl_vendorreq(struct intf_hdl *pintfhdl, u8 request, u16 value, u16 inde
 			break;
 
 	}
+
+#if (defined(CONFIG_RTL8822B) || defined(CONFIG_RTL8821C))
+	if (value < 0xFE00) {
+		if (0x00 <= value && value <= 0xff)
+			current_reg_sec = REG_ON_SEC;
+		else if (0x1000 <= value && value <= 0x10ff)
+			current_reg_sec = REG_ON_SEC;
+		else
+			current_reg_sec = REG_OFF_SEC;
+	} else {
+		current_reg_sec = REG_LOCAL_SEC;
+	}
+
+	if (current_reg_sec == REG_ON_SEC) {
+		unsigned int t_pipe = usb_sndctrlpipe(udev, 0);/* write_out */
+		u8 t_reqtype =  REALTEK_USB_VENQT_WRITE;
+		u8 t_len = 1;
+		u8 t_req = 0x05;
+		u16 t_reg = 0;
+		u16 t_index = 0;
+
+		t_reg = 0x4e0;
+
+		status = rtw_usb_control_msg(udev, t_pipe, t_req, t_reqtype, t_reg, t_index, pIo_buf, t_len, RTW_USB_CONTROL_MSG_TIMEOUT);
+
+		if (status == t_len)
+			rtw_reset_continual_io_error(pdvobjpriv);
+		else
+			RTW_INFO("reg 0x%x, usb %s %u fail, status:%d\n", t_reg, "write" , t_len, status);
+
+	}
+#endif
 
 	/* release IO memory used by vendorreq */
 #ifdef CONFIG_USB_VENDOR_REQ_BUFFER_DYNAMIC_ALLOCATE

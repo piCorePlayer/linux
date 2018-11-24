@@ -28,6 +28,11 @@
 #ifdef CONFIG_GSPI_HCI
 	#include <hal_gspi.h>
 #endif
+
+#if defined(CONFIG_RTW_ACS) || defined(CONFIG_BACKGROUND_NOISE_MONITOR)
+#include "../hal/hal_dm_acs.h"
+#endif
+
 /*
  * <Roger_Notes> For RTL8723 WiFi/BT/GPS multi-function configuration. 2010.10.06.
  *   */
@@ -90,21 +95,6 @@ typedef enum _RT_AMPDU_BRUST_MODE {
 
 #define MAX_BASE_NUM_IN_PHY_REG_PG_2_4G			10 /* CCK:1, OFDM:1, HT:4, VHT:4 */
 #define MAX_BASE_NUM_IN_PHY_REG_PG_5G			9 /* OFDM:1, HT:4, VHT:4 */
-
-
-/* ###### duplicate code,will move to ODM ######### */
-/* #define IQK_MAC_REG_NUM		4 */
-/* #define IQK_ADDA_REG_NUM		16 */
-
-/* #define IQK_BB_REG_NUM			10 */
-#define IQK_BB_REG_NUM_92C	9
-#define IQK_BB_REG_NUM_92D	10
-#define IQK_BB_REG_NUM_test	6
-
-#define IQK_Matrix_Settings_NUM_92D	(1+24+21)
-
-/* #define HP_THERMAL_NUM		8 */
-/* ###### duplicate code,will move to ODM ######### */
 
 #ifdef RTW_RX_AGGREGATION
 typedef enum _RX_AGG_MODE {
@@ -194,24 +184,6 @@ typedef struct _BB_INIT_REGISTER {
 #define HCI_SUS_ENTERING	3
 #define HCI_SUS_ERR			4
 
-#ifdef CONFIG_AUTO_CHNL_SEL_NHM
-typedef enum _ACS_OP {
-	ACS_INIT,		/*ACS - Variable init*/
-	ACS_RESET,		/*ACS - NHM Counter reset*/
-	ACS_SELECT,		/*ACS - NHM Counter Statistics */
-} ACS_OP;
-
-typedef enum _ACS_STATE {
-	ACS_DISABLE,
-	ACS_ENABLE,
-} ACS_STATE;
-
-struct auto_chan_sel {
-	ATOMIC_T state;
-	u8	ch; /* previous channel*/
-};
-#endif /*CONFIG_AUTO_CHNL_SEL_NHM*/
-
 #define EFUSE_FILE_UNUSED 0
 #define EFUSE_FILE_FAILED 1
 #define EFUSE_FILE_LOADED 2
@@ -219,9 +191,6 @@ struct auto_chan_sel {
 #define MACADDR_FILE_UNUSED 0
 #define MACADDR_FILE_FAILED 1
 #define MACADDR_FILE_LOADED 2
-
-#define KFREE_FLAG_ON				BIT(0)
-#define KFREE_FLAG_THERMAL_K_ON		BIT(1)
 
 #define MAX_IQK_INFO_BACKUP_CHNL_NUM	5
 #define MAX_IQK_INFO_BACKUP_REG_NUM		10
@@ -257,6 +226,9 @@ struct hal_spec_t {
 	u8 port_num;
 	u8 proto_cap;	/* value of PROTO_CAP_XXX */
 	u8 wl_func;		/* value of WL_FUNC_XXX */
+
+	u8 pg_txpwr_saddr; /* starting address of PG tx power info */
+
 	u8 hci_type;	/* value of HCI Type */
 };
 
@@ -363,13 +335,13 @@ typedef struct hal_com_data {
 	u16	FirmwareSignature;
 	u8	RegFWOffload;
 	u8	bFWReady;
+	u8	bBTFWReady;
 	u8	fw_ractrl;
-	u8	FwRsvdPageStartOffset; /* 2010.06.23. Added by tynli. Reserve page start offset except beacon in TxQ.*/
 	u8	LastHMEBoxNum;	/* H2C - for host message to fw */
 
 	/****** current WIFI_PHY values ******/
 	WIRELESS_MODE	CurrentWirelessMode;
-	CHANNEL_WIDTH	current_channel_bw;
+	enum channel_width current_channel_bw;
 	BAND_TYPE		current_band_type;	/* 0:2.4G, 1:5G */
 	BAND_TYPE		BandSet;
 	u8				current_channel;
@@ -383,6 +355,7 @@ typedef struct hal_com_data {
 	u8				bDisableSWChannelPlan; /* flag of disable software change channel plan	 */
 	u16				BasicRateSet;
 	u32				ReceiveConfig;
+	u32				rcr_backup; /* used for switching back from monitor mode */
 	u8				rx_tsf_addr_filter_config; /* for 8822B/8821C USE */
 	BOOLEAN			bSwChnl;
 	BOOLEAN			bSetChnlBW;
@@ -391,26 +364,24 @@ typedef struct hal_com_data {
 	BOOLEAN			bChnlBWInitialized;
 	u32				BackUp_BB_REG_4_2nd_CCA[3];
 
-#ifdef	CONFIG_CHNL_LOAD_MAGT
-	u16	clm_result[MAX_CHANNEL_NUM];
-	u16	clm_period;
-#endif
-#ifdef CONFIG_AUTO_CHNL_SEL_NHM
+#ifdef CONFIG_RTW_ACS
 	struct auto_chan_sel acs;
 #endif
+#ifdef CONFIG_BCN_RECOVERY
+	u8 issue_bcn_fail;
+#endif /*CONFIG_BCN_RECOVERY*/
+
 	/****** rf_ctrl *****/
 	u8	rf_chip;
-	u8	rf_type;
+	u8	rf_type;	/*enum rf_type*/
 	u8	PackageType;
 	u8	NumTotalRFPath;
 	u8	antenna_test;
 
 	/****** Debug ******/
 	u16	ForcedDataRate;	/* Force Data Rate. 0: Auto, 0x02: 1M ~ 0x6C: 54M. */
-	u8	u1ForcedIgiLb;	/* forced IGI lower bound */
 	u8	bDumpRxPkt;
 	u8	bDumpTxPkt;
-	u8	bDisableTXPowerTraining;
 	u8	dis_turboedca;
 
 
@@ -548,15 +519,13 @@ typedef struct hal_com_data {
 	/******** PHY DM & DM Section **********/
 	_lock		IQKSpinLock;
 	u8			INIDATA_RATE[MACID_NUM_SW_LIMIT];
-	/* Upper and Lower Signal threshold for Rate Adaptive*/
-	int			entry_min_undecorated_smoothed_pwdb;
-	int			entry_max_undecorated_smoothed_pwdb;
-	int			min_undecorated_pwdb_for_dm;
-	struct PHY_DM_STRUCT	 odmpriv;
+
+	struct dm_struct	 odmpriv;
 	u64			bk_rf_ability;
 	u8			bIQKInitialized;
 	u8			bNeedIQK;
-	u8		IQK_MP_Switch;
+	u8			IQK_MP_Switch;
+	u8			bScanInProcess;
 	/******** PHY DM & DM Section **********/
 
 
@@ -576,6 +545,8 @@ typedef struct hal_com_data {
 
 	u8	RegIQKFWOffload;
 	struct submit_ctx	iqk_sctx;
+	u8 ch_switch_offload;
+	struct submit_ctx chsw_sctx;
 
 	RT_AMPDU_BRUST		AMPDUBurstMode; /* 92C maybe not use, but for compile successfully */
 
@@ -620,7 +591,7 @@ typedef struct hal_com_data {
 	/* SDIO Rx FIFO related. */
 	/*  */
 	u8			SdioRxFIFOCnt;
-	u32			SdioRxFIFOSize;
+	u16			SdioRxFIFOSize;
 
 #ifndef RTW_HALMAC
 	u32			sdio_tx_max_len[SDIO_MAX_TX_QUEUE];/* H, N, L, used for sdio tx aggregation max length per queue */
@@ -631,7 +602,7 @@ typedef struct hal_com_data {
 	u16			tx_normal_page;
 	u16			tx_extra_page;
 	u16			tx_pub_page;
-	u16			max_oqt_page;
+	u8			max_oqt_size;
 	#ifdef XMIT_BUF_SIZE
 	u32			max_xmit_size_vovi;
 	u32			max_xmit_size_bebk;
@@ -696,6 +667,9 @@ typedef struct hal_com_data {
 	u8			bDisableTxInt;
 
 	u16			RxTag;
+#ifdef CONFIG_PCI_DYNAMIC_ASPM
+	BOOLEAN		bAspmL1LastIdle;
+#endif
 #endif /* CONFIG_PCI_HCI */
 
 
@@ -740,7 +714,7 @@ typedef struct hal_com_data {
 #endif
 
 #ifdef CONFIG_BACKGROUND_NOISE_MONITOR
-	s16 noise[ODM_MAX_CHANNEL_NUM];
+	struct noise_monitor nm;
 #endif
 
 	struct hal_spec_t hal_spec;
@@ -772,14 +746,19 @@ typedef struct hal_com_data {
 #endif /* CONFIG_BEAMFORMING */
 
 	u8 not_xmitframe_fw_dl; /*not use xmitframe to download fw*/
+	u8 phydm_op_mode;
+
+	u8 in_cta_test;
+
+#ifdef CONFIG_RTW_LED
+	struct led_priv led;
+#endif
 } HAL_DATA_COMMON, *PHAL_DATA_COMMON;
 
-
-
 typedef struct hal_com_data HAL_DATA_TYPE, *PHAL_DATA_TYPE;
-#define GET_HAL_DATA(__pAdapter)			((HAL_DATA_TYPE *)((__pAdapter)->HalData))
+#define GET_HAL_DATA(__pAdapter)			((HAL_DATA_TYPE *)(((struct _ADAPTER*)__pAdapter)->HalData))
 #define GET_HAL_SPEC(__pAdapter)			(&(GET_HAL_DATA((__pAdapter))->hal_spec))
-#define GET_ODM(__pAdapter)			(&(GET_HAL_DATA((__pAdapter))->odmpriv))
+#define adapter_to_led(adapter) (&(GET_HAL_DATA(adapter)->led))
 
 #define GET_HAL_RFPATH_NUM(__pAdapter)		(((HAL_DATA_TYPE *)((__pAdapter)->HalData))->NumTotalRFPath)
 #define RT_GetInterfaceSelection(_Adapter)		(GET_HAL_DATA(_Adapter)->InterfaceSel)
@@ -793,15 +772,9 @@ typedef struct hal_com_data HAL_DATA_TYPE, *PHAL_DATA_TYPE;
 #define get_hal_mac_addr(adapter)				(GET_HAL_DATA(adapter)->EEPROMMACAddr)
 #define is_boot_from_eeprom(adapter)			(GET_HAL_DATA(adapter)->EepromOrEfuse)
 #define rtw_get_hw_init_completed(adapter)		(GET_HAL_DATA(adapter)->hw_init_completed)
+#define rtw_set_hw_init_completed(adapter, cmp)	(GET_HAL_DATA(adapter)->hw_init_completed = cmp)
 #define rtw_is_hw_init_completed(adapter)		(GET_HAL_DATA(adapter)->hw_init_completed == _TRUE)
 #endif
-
-#ifdef CONFIG_AUTO_CHNL_SEL_NHM
-#define GET_ACS_STATE(padapter)					(ATOMIC_READ(&GET_HAL_DATA(padapter)->acs.state))
-#define SET_ACS_STATE(padapter, set_state)			(ATOMIC_SET(&GET_HAL_DATA(padapter)->acs.state, set_state))
-#define rtw_get_acs_channel(padapter)				(GET_HAL_DATA(padapter)->acs.ch)
-#define rtw_set_acs_channel(padapter, survey_ch)	(GET_HAL_DATA(padapter)->acs.ch = survey_ch)
-#endif /*CONFIG_AUTO_CHNL_SEL_NHM*/
 
 #ifdef RTW_HALMAC
 int rtw_halmac_deinit_adapter(struct dvobj_priv *);

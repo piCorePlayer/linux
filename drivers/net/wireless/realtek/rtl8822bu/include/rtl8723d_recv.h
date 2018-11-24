@@ -97,6 +97,7 @@
 #if defined(CONFIG_SDIO_HCI) || defined(CONFIG_GSPI_HCI)
 	s32 rtl8723ds_init_recv_priv(PADAPTER padapter);
 	void rtl8723ds_free_recv_priv(PADAPTER padapter);
+	s32 rtl8723ds_recv_hdl(_adapter *padapter);
 #endif
 
 #ifdef CONFIG_USB_HCI

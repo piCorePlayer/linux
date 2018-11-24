@@ -195,6 +195,12 @@ static inline bool rtw_os_need_wake_queue(_adapter *padapter, u16 qidx)
 	if (padapter->registrypriv.wifi_spec) {
 		if (pxmitpriv->hwxmits[qidx].accnt < WMM_XMIT_THRESHOLD)
 			return _TRUE;
+#ifdef DBG_CONFIG_ERROR_DETECT
+#ifdef DBG_CONFIG_ERROR_RESET
+	} else if (rtw_hal_sreset_inprogress(padapter) == _TRUE) {
+		return _FALSE;
+#endif/* #ifdef DBG_CONFIG_ERROR_RESET */
+#endif/* #ifdef DBG_CONFIG_ERROR_DETECT */
 	} else {
 #ifdef CONFIG_MCC_MODE
 		if (MCC_EN(padapter)) {
@@ -398,9 +404,9 @@ int rtw_mlcst2unicst(_adapter *padapter, struct sk_buff *skb)
 		}
 
 		/* avoid come from STA1 and send back STA1 */
-		if (_rtw_memcmp(psta->hwaddr, &skb->data[6], 6) == _TRUE
-			|| _rtw_memcmp(psta->hwaddr, null_addr, 6) == _TRUE
-			|| _rtw_memcmp(psta->hwaddr, bc_addr, 6) == _TRUE
+		if (_rtw_memcmp(psta->cmn.mac_addr, &skb->data[6], 6) == _TRUE
+			|| _rtw_memcmp(psta->cmn.mac_addr, null_addr, 6) == _TRUE
+			|| _rtw_memcmp(psta->cmn.mac_addr, bc_addr, 6) == _TRUE
 		) {
 			DBG_COUNTER(padapter->tx_logs.os_tx_m2u_ignore_self);
 			continue;
@@ -411,7 +417,7 @@ int rtw_mlcst2unicst(_adapter *padapter, struct sk_buff *skb)
 		newskb = rtw_skb_copy(skb);
 
 		if (newskb) {
-			_rtw_memcpy(newskb->data, psta->hwaddr, 6);
+			_rtw_memcpy(newskb->data, psta->cmn.mac_addr, 6);
 			res = rtw_xmit(padapter, &newskb);
 			if (res < 0) {
 				DBG_COUNTER(padapter->tx_logs.os_tx_m2u_entry_err_xmit);
@@ -466,7 +472,7 @@ int _rtw_xmit_entry(_pkt *pkt, _nic_hdl pnetdev)
 
 #ifdef CONFIG_TX_MCAST2UNI
 	if (!rtw_mc2u_disable
-		&& check_fwstate(pmlmepriv, WIFI_AP_STATE) == _TRUE
+		&& MLME_IS_AP(padapter)
 		&& (IP_MCAST_MAC(pkt->data)
 			|| ICMPV6_MCAST_MAC(pkt->data)
 			#ifdef CONFIG_TX_BCAST2UNI

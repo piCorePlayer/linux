@@ -33,13 +33,14 @@ void rtl8822bu_set_hw_type(struct dvobj_priv *pdvobj)
 	RTW_INFO("CHIP TYPE: RTL8822B\n");
 }
 
-static void sethwreg(PADAPTER padapter, u8 variable, u8 *val)
+static u8 sethwreg(PADAPTER padapter, u8 variable, u8 *val)
 {
 	HAL_DATA_TYPE *pHalData = GET_HAL_DATA(padapter);
 	struct dvobj_priv	*pdvobjpriv = adapter_to_dvobj(padapter);
 	struct pwrctrl_priv *pwrctl = adapter_to_pwrctl(padapter);
 	struct registry_priv *registry_par = &padapter->registrypriv;
 	int status = 0;
+	u8 ret = _SUCCESS;
 
 	switch (variable) {
 	case HW_VAR_RXDMA_AGG_PG_TH:
@@ -47,7 +48,7 @@ static void sethwreg(PADAPTER padapter, u8 variable, u8 *val)
 		if (pdvobjpriv->traffic_stat.cur_tx_tp < 1 && pdvobjpriv->traffic_stat.cur_rx_tp < 1) {
 			/* for low traffic, do not usb AGGREGATION */
 			pHalData->rxagg_usb_timeout = 0x01;
-			pHalData->rxagg_usb_size = 0;
+			pHalData->rxagg_usb_size = 0x01;
 
 		} else {
 #ifdef CONFIG_PLATFORM_NOVATEK_NT72668
@@ -128,9 +129,11 @@ static void sethwreg(PADAPTER padapter, u8 variable, u8 *val)
 	}
 	break;
 	default:
-		rtl8822b_sethwreg(padapter, variable, val);
+		ret = rtl8822b_sethwreg(padapter, variable, val);
 		break;
 	}
+
+	return ret;
 }
 
 static void gethwreg(PADAPTER padapter, u8 variable, u8 *val)
@@ -147,7 +150,7 @@ static void gethwreg(PADAPTER padapter, u8 variable, u8 *val)
 	case HW_VAR_RPWM_TOG:
 #ifdef CONFIG_LPS_LCLK
 		*val = rtw_read8(padapter, REG_USB_HRPWM_8822B);
-		*val &= BIT_TOGGLING_8822B;
+		*val &= BIT_TOGGLE_8822B;
 #endif /* CONFIG_LPS_LCLK */
 		break;
 
@@ -223,6 +226,36 @@ static u8 rtl8822bu_ps_func(PADAPTER padapter, HAL_INTF_PS_FUNC efunc_id, u8 *va
 	return bResult;
 }
 
+#ifdef CONFIG_RTW_LED
+static void read_ledsetting(PADAPTER adapter)
+{
+	struct led_priv *ledpriv = adapter_to_led(adapter);
+
+#ifdef CONFIG_RTW_SW_LED
+	PHAL_DATA_TYPE hal;
+	
+	hal = GET_HAL_DATA(adapter);
+	ledpriv->bRegUseLed = _TRUE;
+
+	switch (hal->EEPROMCustomerID) {
+	default:
+		hal->CustomerID = RT_CID_DEFAULT;
+		break;
+	}
+
+	switch (hal->CustomerID) {
+	case RT_CID_DEFAULT:
+	default:
+		ledpriv->LedStrategy = SW_LED_MODE9;
+		break;
+	}
+#else /* HW LED */
+	ledpriv->LedStrategy = HW_LED;
+#endif /* CONFIG_RTW_SW_LED */
+}
+#endif /* CONFIG_RTW_LED */
+ 
+
 /*
  * Description:
  *	Collect all hardware information, fill "HAL_DATA_TYPE".
@@ -249,6 +282,10 @@ static u8 read_adapter_info(PADAPTER padapter)
 	/*
 	 * 3. Other Initialization
 	 */
+
+#ifdef CONFIG_RTW_LED
+	read_ledsetting(padapter);
+#endif /* CONFIG_RTW_LED */
 
 	ret = _SUCCESS;
 
@@ -284,12 +321,9 @@ void rtl8822bu_set_hal_ops(PADAPTER padapter)
 
 	ops->init_recv_priv = rtl8822bu_init_recv_priv;
 	ops->free_recv_priv = rtl8822bu_free_recv_priv;
-#ifdef CONFIG_SW_LED
+#ifdef CONFIG_RTW_SW_LED
 	ops->InitSwLeds = rtl8822bu_initswleds;
 	ops->DeInitSwLeds = rtl8822bu_deinitswleds;
-#else
-	ops->InitSwLeds = NULL;
-	ops->DeInitSwLeds = NULL;
 #endif
 
 	ops->init_default_value = rtl8822bu_init_default_value;

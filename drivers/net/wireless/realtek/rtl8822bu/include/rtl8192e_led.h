@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2017 Realtek Corporation.
+ * Copyright(c) 2012 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -15,7 +15,7 @@
 #ifndef __RTL8192E_LED_H__
 #define __RTL8192E_LED_H__
 
-
+#ifdef CONFIG_RTW_SW_LED
 /* ********************************************************************************
  * Interface to manipulate LED objects.
  * ******************************************************************************** */
@@ -33,3 +33,4 @@
 #endif
 
 #endif
+#endif/*CONFIG_RTW_SW_LED*/

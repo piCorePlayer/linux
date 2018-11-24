@@ -117,7 +117,7 @@ static inline u8 rtw_usb_bulk_size_boundary(_adapter *padapter, int buf_len)
 
 	if (IS_SUPER_SPEED_USB(padapter))
 		rst = (0 == (buf_len) % USB_SUPER_SPEED_BULK_SIZE) ? _TRUE : _FALSE;
-	if (IS_HIGH_SPEED_USB(padapter))
+	else if (IS_HIGH_SPEED_USB(padapter))
 		rst = (0 == (buf_len) % USB_HIGH_SPEED_BULK_SIZE) ? _TRUE : _FALSE;
 	else
 		rst = (0 == (buf_len) % USB_FULL_SPEED_BULK_SIZE) ? _TRUE : _FALSE;

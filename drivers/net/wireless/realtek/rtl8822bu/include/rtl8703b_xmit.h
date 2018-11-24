@@ -288,6 +288,7 @@ void rtl8703b_fill_fake_txdesc(PADAPTER padapter, u8 *pDesc, u32 BufferLen, u8 I
 #if defined(CONFIG_CONCURRENT_MODE)
 	void fill_txdesc_force_bmc_camid(struct pkt_attrib *pattrib, u8 *ptxdesc);
 #endif
+void fill_txdesc_bmc_tx_rate(struct pkt_attrib *pattrib, u8 *ptxdesc);
 
 #if defined(CONFIG_SDIO_HCI) || defined(CONFIG_GSPI_HCI)
 	s32 rtl8703bs_init_xmit_priv(PADAPTER padapter);

@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2011 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2007 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,17 +11,10 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 
 #ifndef	__PHYDMPOWERTRACKING_H__
 #define    __PHYDMPOWERTRACKING_H__
-
-#define HALRF_POWRTRACKING_VER	"1.1"
 
 #if (DM_ODM_SUPPORT_TYPE == ODM_AP)
 	#ifdef RTK_AC_SUPPORT
@@ -49,8 +42,6 @@
 #define IQK_BB_REG_NUM_MAX	10
 
 #define IQK_BB_REG_NUM		9
-
-#define HP_THERMAL_NUM		8
 
 #define AVG_THERMAL_NUM		8
 #define iqk_matrix_reg_num	8
@@ -105,7 +96,7 @@ static u8 delta_swing_table_idx_2ga_n_8188e[] = {0, 0, 0, 2, 2, 3, 3, 4, 4, 4, 4
 #define	OFDM_TABLE_SIZE_8812	43
 #define	AVG_THERMAL_NUM_8812	4
 
-#if (RTL8814A_SUPPORT == 1 || RTL8822B_SUPPORT == 1)
+#if (RTL8814A_SUPPORT == 1 || RTL8822B_SUPPORT == 1 || RTL8821C_SUPPORT == 1)
 	extern u32 tx_scaling_table_jaguar[TXSCALE_TABLE_SIZE];
 	#elif(ODM_IC_11AC_SERIES_SUPPORT)
 	extern unsigned int ofdm_swing_table_8812[OFDM_TABLE_SIZE_8812];
@@ -117,12 +108,12 @@ extern u32 cck_swing_table_ch1_ch14_8710b[CCK_TABLE_SIZE_8710B];
 
 #define dm_check_txpowertracking	odm_txpowertracking_check
 
-struct _IQK_MATRIX_REGS_SETTING {
+struct iqk_matrix_regs_setting {
 	boolean	is_iqk_done;
 	s32		value[1][iqk_matrix_reg_num];
 };
 
-struct odm_rf_calibration_structure {
+struct dm_rf_calibration_struct {
 	/* for tx power tracking */
 
 	u32	rega24; /* for TempCCK */
@@ -166,9 +157,7 @@ struct odm_rf_calibration_structure {
 	s8	delta_power_index_last;
 	boolean is_tx_power_changed;
 
-	u8	thermal_value_hp[HP_THERMAL_NUM];
-	u8	thermal_value_hp_index;
-	struct _IQK_MATRIX_REGS_SETTING iqk_matrix_reg_setting[IQK_MATRIX_SETTINGS_NUM];
+	struct iqk_matrix_regs_setting iqk_matrix_reg_setting[IQK_MATRIX_SETTINGS_NUM];
 	u8	delta_lck;
 	u8  delta_swing_table_idx_2g_cck_a_p[DELTA_SWINGIDX_SIZE];
 	u8  delta_swing_table_idx_2g_cck_a_n[DELTA_SWINGIDX_SIZE];
@@ -268,6 +257,7 @@ struct odm_rf_calibration_structure {
 	u64	iqk_start_time;
 	u64	iqk_total_progressing_time;
 	u64	iqk_progressing_time;
+	u64	lck_progressing_time;
 	u32  lok_result;
 	u8	iqk_step;
 	u8	kcount;
@@ -290,34 +280,34 @@ struct odm_rf_calibration_structure {
 
 void
 odm_txpowertracking_check_ap(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 void
 odm_txpowertracking_check(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 
 void
 odm_txpowertracking_thermal_meter_init(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 void
 odm_txpowertracking_init(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 void
 odm_txpowertracking_check_mp(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 
 void
 odm_txpowertracking_check_ce(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 
@@ -325,27 +315,27 @@ odm_txpowertracking_check_ce(
 
 void
 odm_txpowertracking_callback_thermal_meter92c(
-	struct _ADAPTER	*adapter
+	void	*adapter
 );
 
 void
 odm_txpowertracking_callback_rx_gain_thermal_meter92d(
-	struct _ADAPTER	*adapter
+	void	*adapter
 );
 
 void
 odm_txpowertracking_callback_thermal_meter92d(
-	struct _ADAPTER	*adapter
+	void	*adapter
 );
 
 void
 odm_txpowertracking_direct_call92c(
-	struct _ADAPTER		*adapter
+	void		*adapter
 );
 
 void
 odm_txpowertracking_thermal_meter_check(
-	struct _ADAPTER		*adapter
+	void		*adapter
 );
 
 #endif

@@ -61,11 +61,11 @@ void	PHY_SetBBReg8812(IN	PADAPTER		Adapter,
 			 IN	u32			BitMask,
 			 IN	u32			Data);
 u32	PHY_QueryRFReg8812(IN	PADAPTER	Adapter,
-			   IN	u8			eRFPath,
+			   IN	enum rf_path	eRFPath,
 			   IN	u32			RegAddr,
 			   IN	u32			BitMask);
 void	PHY_SetRFReg8812(IN	PADAPTER		Adapter,
-			 IN	u8			eRFPath,
+			 IN	enum rf_path	eRFPath,
 			 IN	u32			RegAddr,
 			 IN	u32			BitMask,
 			 IN	u32			Data);
@@ -96,7 +96,7 @@ void	PHY_SetTxPowerLevel8812(IN PADAPTER	Adapter, IN u8	Channel);
 BOOLEAN	PHY_UpdateTxPowerDbm8812(IN PADAPTER	Adapter, IN int	powerInDbm);
 u8 PHY_GetTxPowerIndex_8812A(
 	IN	PADAPTER			pAdapter,
-	IN	u8					RFPath,
+	IN	enum rf_path			RFPath,
 	IN	u8					Rate,
 	IN	u8					BandWidth,
 	IN	u8					Channel,
@@ -106,15 +106,15 @@ u8 PHY_GetTxPowerIndex_8812A(
 u32 phy_get_tx_bb_swing_8812a(
 	IN	PADAPTER	Adapter,
 	IN	BAND_TYPE	Band,
-	IN	u8			RFPath
+	IN	enum rf_path	RFPath
 );
 
 VOID
 PHY_SetTxPowerIndex_8812A(
-	IN	PADAPTER			Adapter,
-	IN	u4Byte				PowerIndex,
-	IN	u1Byte				RFPath,
-	IN	u1Byte				Rate
+	IN	PADAPTER		Adapter,
+	IN	u32				PowerIndex,
+	IN	enum rf_path		RFPath,
+	IN	u8				Rate
 );
 
 /*
@@ -124,7 +124,7 @@ VOID
 PHY_SetSwChnlBWMode8812(
 	IN	PADAPTER			Adapter,
 	IN	u8					channel,
-	IN	CHANNEL_WIDTH		Bandwidth,
+	IN	enum channel_width	Bandwidth,
 	IN	u8					Offset40,
 	IN	u8					Offset80
 );
@@ -135,7 +135,7 @@ PHY_SetSwChnlBWMode8812(
 
 VOID
 phy_set_rf_path_switch_8812a(
-	IN	PADAPTER	pAdapter,
+	IN	struct dm_struct		*phydm,
 	IN	bool		bMain
 );
 

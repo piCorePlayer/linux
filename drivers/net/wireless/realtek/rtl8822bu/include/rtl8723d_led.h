@@ -19,7 +19,7 @@
 #include <osdep_service.h>
 #include <drv_types.h>
 
-
+#ifdef CONFIG_RTW_SW_LED
 /* ********************************************************************************
  * Interface to manipulate LED objects.
  * ******************************************************************************** */
@@ -40,4 +40,5 @@
 	void rtl8723de_DeInitSwLeds(PADAPTER padapter);
 #endif
 
+#endif /*#ifdef CONFIG_RTW_SW_LED*/
 #endif

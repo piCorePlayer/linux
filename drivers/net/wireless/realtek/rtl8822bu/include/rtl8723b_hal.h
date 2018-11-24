@@ -149,11 +149,13 @@ typedef struct _RT_8723B_FIRMWARE_HDR {
 #define NORMAL_PAGE_NUM_HPQ_8723B		0x0C
 #define NORMAL_PAGE_NUM_LPQ_8723B		0x02
 #define NORMAL_PAGE_NUM_NPQ_8723B		0x02
+#define NORMAL_PAGE_NUM_EPQ_8723B		0x04
 
 /* Note: For Normal Chip Setting, modify later */
 #define WMM_NORMAL_PAGE_NUM_HPQ_8723B		0x30
 #define WMM_NORMAL_PAGE_NUM_LPQ_8723B		0x20
 #define WMM_NORMAL_PAGE_NUM_NPQ_8723B		0x20
+#define WMM_NORMAL_PAGE_NUM_EPQ_8723B		0x00
 
 
 #include "HalVerDef.h"
@@ -228,7 +230,7 @@ VOID Hal_EfuseParseBoardType_8723B(PADAPTER Adapter,	u8	*PROMContent, BOOLEAN Au
 
 void rtl8723b_set_hal_ops(struct hal_ops *pHalFunc);
 void init_hal_spec_8723b(_adapter *adapter);
-void SetHwReg8723B(PADAPTER padapter, u8 variable, u8 *val);
+u8 SetHwReg8723B(PADAPTER padapter, u8 variable, u8 *val);
 void GetHwReg8723B(PADAPTER padapter, u8 variable, u8 *val);
 u8 SetHalDefVar8723B(PADAPTER padapter, HAL_DEF_VARIABLE variable, void *pval);
 u8 GetHalDefVar8723B(PADAPTER padapter, HAL_DEF_VARIABLE variable, void *pval);

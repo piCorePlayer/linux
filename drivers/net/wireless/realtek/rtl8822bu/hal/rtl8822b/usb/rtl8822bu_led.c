@@ -17,6 +17,8 @@
 #include <drv_types.h>		/* PADAPTER */
 #include <hal_data.h>		/* PHAL_DATA_TYPE */
 #include <hal_com_led.h>	/* PLED_USB */
+#include "../../hal_halmac.h" /* HALMAC API */
+#ifdef CONFIG_RTW_SW_LED
 
 /*
  * =============================================================================
@@ -41,15 +43,25 @@
  * Description:
  * Turn on LED according to LedPin specified.
  */
-void swledon(PADAPTER padapter, PLED_USB pLed)
+static void swledon(PADAPTER padapter, PLED_USB led)
 {
-	u8 LedCfg;
-	PHAL_DATA_TYPE pHalData = GET_HAL_DATA(padapter);
+	PHAL_DATA_TYPE hal = GET_HAL_DATA(padapter);
 
 	if (RTW_CANNOT_RUN(padapter))
 		return;
 
-	pLed->bLedOn = _TRUE;
+	switch (led->LedPin) {
+	case LED_PIN_GPIO0:
+		break;
+	case LED_PIN_LED0:
+	case LED_PIN_LED1:
+	case LED_PIN_LED2:
+	default:
+		rtw_halmac_led_switch(adapter_to_dvobj(padapter), 1);
+		break;
+	}
+
+	led->bLedOn = _TRUE;
 }
 
 
@@ -57,16 +69,25 @@ void swledon(PADAPTER padapter, PLED_USB pLed)
  * Description:
  * Turn off LED according to LedPin specified.
  */
-void swledoff(PADAPTER padapter, PLED_USB pLed)
+static void swledoff(PADAPTER padapter, PLED_USB led)
 {
-	u8 LedCfg;
-	PHAL_DATA_TYPE pHalData = GET_HAL_DATA(padapter);
+	PHAL_DATA_TYPE hal = GET_HAL_DATA(padapter);
 
 	if (RTW_CANNOT_RUN(padapter))
-		goto exit;
+		return;
 
-exit:
-	pLed->bLedOn = _FALSE;
+	switch (led->LedPin) {
+	case LED_PIN_GPIO0:
+		break;
+	case LED_PIN_LED0:
+	case LED_PIN_LED1:
+	case LED_PIN_LED2:
+	default:
+		rtw_halmac_led_switch(adapter_to_dvobj(padapter), 0);
+		break;
+	}
+
+	led->bLedOn = _FALSE;
 }
 
 /*
@@ -87,6 +108,19 @@ exit:
  */
 void rtl8822bu_initswleds(PADAPTER padapter)
 {
+	struct led_priv *ledpriv = adapter_to_led(padapter);
+	u8 enable = 1;
+	u8 mode = 3;
+
+	ledpriv->LedControlHandler = LedControlUSB;
+	ledpriv->SwLedOn = swledon;
+	ledpriv->SwLedOff = swledoff;
+
+	InitLed(padapter, &(ledpriv->SwLed0), LED_PIN_LED0);
+	InitLed(padapter, &(ledpriv->SwLed1), LED_PIN_LED1);
+	InitLed(padapter, &(ledpriv->SwLed2), LED_PIN_LED2);
+
+	rtw_halmac_led_cfg(adapter_to_dvobj(padapter), enable, mode);
 }
 
 /*
@@ -95,4 +129,14 @@ void rtl8822bu_initswleds(PADAPTER padapter)
  */
 void rtl8822bu_deinitswleds(PADAPTER padapter)
 {
+	struct led_priv *ledpriv = adapter_to_led(padapter);
+	u8 enable = 0;
+	u8 mode = 3;
+
+	DeInitLed(&(ledpriv->SwLed0));
+	DeInitLed(&(ledpriv->SwLed1));
+	DeInitLed(&(ledpriv->SwLed2));
+
+	rtw_halmac_led_cfg(adapter_to_dvobj(padapter), enable, mode);
 }
+#endif
