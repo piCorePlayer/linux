@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2013 - 2017 Realtek Corporation.
+ * Copyright(c) 2007 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -18,7 +18,7 @@
 VOID
 PHY_RF6052SetBandwidth8814A(
 	IN	PADAPTER				Adapter,
-	IN	CHANNEL_WIDTH		Bandwidth);
+	IN	enum channel_width		Bandwidth);
 
 
 int

@@ -22,6 +22,6 @@ void		rtl8188e_RF_ChangeTxPath(IN	PADAPTER	Adapter,
 		IN	u16		DataRate);
 void		rtl8188e_PHY_RF6052SetBandwidth(
 	IN	PADAPTER				Adapter,
-	IN	CHANNEL_WIDTH		Bandwidth);
+	IN	enum channel_width		Bandwidth);
 
 #endif/* __RTL8188E_RF_H__ */

@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2017 Realtek Corporation.
+ * Copyright(c) 2012 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -273,7 +273,6 @@ void _InitID_8192E(IN  PADAPTER Adapter);
 VOID _InitNetworkType_8192E(IN  PADAPTER Adapter);
 VOID _InitWMACSetting_8192E(IN PADAPTER Adapter);
 VOID _InitAdaptiveCtrl_8192E(IN  PADAPTER Adapter);
-VOID _InitRateFallback_8192E(IN  PADAPTER Adapter);
 VOID _InitEDCA_8192E(IN  PADAPTER Adapter);
 VOID _InitRetryFunction_8192E(IN  PADAPTER Adapter);
 VOID _BBTurnOnBlock_8192E(IN	PADAPTER Adapter);
@@ -287,7 +286,7 @@ VOID hal_ReadRFType_8192E(PADAPTER	Adapter);
 /* RTL8192E-MAC Setting
  ***********************************************************/
 
-void SetHwReg8192E(PADAPTER Adapter, u8 variable, u8 *val);
+u8 SetHwReg8192E(PADAPTER Adapter, u8 variable, u8 *val);
 void GetHwReg8192E(PADAPTER Adapter, u8 variable, u8 *val);
 u8
 SetHalDefVar8192E(
@@ -313,7 +312,7 @@ void rtl8192e_stop_thread(_adapter *padapter);
 
 #ifdef CONFIG_PCI_HCI
 	BOOLEAN	InterruptRecognized8192EE(PADAPTER Adapter);
-	u16	get_txdesc_buf_addr(u16 ff_hwaddr);
+	u16	get_txbd_rw_reg(u16 ff_hwaddr);
 #endif
 
 #ifdef CONFIG_SDIO_HCI

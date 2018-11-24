@@ -35,6 +35,7 @@ void _sd_write32(struct intf_hdl *pintfhdl, u32 addr, u32 v, s32 *err);
 void sd_write32(struct intf_hdl *pintfhdl, u32 addr, u32 v, s32 *err);
 #endif /* RTW_HALMAC */
 
+bool rtw_is_sdio30(_adapter *adapter);
 
 /* The unit of return value is Hz */
 static inline u32 rtw_sdio_get_clock(struct dvobj_priv *d)
@@ -42,7 +43,6 @@ static inline u32 rtw_sdio_get_clock(struct dvobj_priv *d)
 	return d->intf_data.clock;
 }
 
-bool rtw_is_sdio30(_adapter *adapter);
 s32 _sd_read(struct intf_hdl *pintfhdl, u32 addr, u32 cnt, void *pdata);
 s32 sd_read(struct intf_hdl *pintfhdl, u32 addr, u32 cnt, void *pdata);
 s32 _sd_write(struct intf_hdl *pintfhdl, u32 addr, u32 cnt, void *pdata);

@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2013 - 2017 Realtek Corporation.
+ * Copyright(c) 2007 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -446,6 +446,8 @@
 #define REG_SND_PTCL_CTRL_8814A			0x0718
 #define REG_IQ_DUMP_8814A					0x07C0
 
+#define REG_CPU_DMEM_CON_8814A			0x1080
+
 /**** page 19 ****/
 /* TX BeamForming */
 #define	REG_BB_TXBF_ANT_SET_BF1				0x19ac
@@ -476,6 +478,13 @@
 #define REG_DDMA_CHSTATUS              0x12E8
 #define REG_DDMA_CHKSUM                 0x12F0
 #define REG_DDMA_MONITER                0x12FC
+
+#define REG_Q0_Q1_INFO_8814A		0x1400
+#define REG_Q2_Q3_INFO_8814A		0x1404
+#define REG_Q4_Q5_INFO_8814A		0x1408
+#define REG_Q6_Q7_INFO_8814A		0x140C
+#define REG_MGQ_HIQ_INFO_8814A	0x1410
+#define REG_CMDQ_BCNQ_INFO_8814A	0x1414
 
 #define DDMA_LEN_MASK		0x0001FFFF
 #define FW_CHKSUM_DUMMY_SZ		8

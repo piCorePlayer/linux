@@ -69,14 +69,14 @@ PHY_SetBBReg8814A(IN	PADAPTER	Adapter,
 
 extern	u32
 PHY_QueryRFReg8814A(IN	PADAPTER			Adapter,
-		    IN	u8			eRFPath,
+		    IN	enum rf_path	eRFPath,
 		    IN	u32			RegAddr,
 		    IN	u32			BitMask);
 
 
 void
 PHY_SetRFReg8814A(IN	PADAPTER			Adapter,
-		  IN	u8			eRFPath,
+		  IN	enum rf_path		eRFPath,
 		  IN	u32				RegAddr,
 		  IN	u32				BitMask,
 		  IN	u32				Data);
@@ -124,17 +124,17 @@ PHY_SetTxPowerLevel8814(
 
 u8
 phy_get_tx_power_index_8814a(
-	IN	PADAPTER			Adapter,
-	IN  u8				RFPath,
+	IN	PADAPTER		Adapter,
+	IN	enum rf_path		RFPath,
 	IN	u8				Rate,
-	IN	CHANNEL_WIDTH		BandWidth,
+	IN	enum channel_width BandWidth,
 	IN	u8				Channel
 );
 
 u8
 PHY_GetTxPowerIndex8814A(
-	IN	PADAPTER			Adapter,
-	IN  u8				RFPath,
+	IN	PADAPTER		Adapter,
+	IN	enum rf_path		RFPath,
 	IN	u8				Rate,
 	IN	u8				BandWidth,
 	IN	u8				Channel,
@@ -143,9 +143,9 @@ PHY_GetTxPowerIndex8814A(
 
 VOID
 PHY_SetTxPowerIndex_8814A(
-	IN	PADAPTER			Adapter,
+	IN	PADAPTER		Adapter,
 	IN	u32				PowerIndex,
-	IN	u8				RFPath,
+	IN	enum rf_path		RFPath,
 	IN	u8				Rate
 );
 
@@ -161,18 +161,18 @@ u32
 PHY_GetTxBBSwing_8814A(
 	IN	PADAPTER	Adapter,
 	IN	BAND_TYPE	Band,
-	IN	u8		RFPath
+	IN	enum rf_path	RFPath
 );
 
 
 
 /* 1 6. Channel setting API */
-
+#if 0
 VOID
 PHY_SwChnlTimerCallback8814A(
 	IN	struct timer_list		*p_timer
 );
-
+#endif
 VOID
 PHY_SwChnlWorkItemCallback8814A(
 	IN PVOID            pContext
@@ -199,7 +199,7 @@ PHY_HandleSwChnlAndSetBW8814A(
 	IN	BOOLEAN				bSwitchChannel,
 	IN	BOOLEAN				bSetBandWidth,
 	IN	u8					ChannelNum,
-	IN	CHANNEL_WIDTH		ChnlWidth,
+	IN	enum channel_width	ChnlWidth,
 	IN	u8					ChnlOffsetOf40MHz,
 	IN	u8					ChnlOffsetOf80MHz,
 	IN	u8					CenterFrequencyIndex1
@@ -247,7 +247,7 @@ VOID
 PHY_SetSwChnlBWMode8814(
 	IN	PADAPTER			Adapter,
 	IN	u8					channel,
-	IN	CHANNEL_WIDTH		Bandwidth,
+	IN	enum channel_width	Bandwidth,
 	IN	u8					Offset40,
 	IN	u8					Offset80
 );

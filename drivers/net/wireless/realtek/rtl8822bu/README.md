@@ -44,4 +44,3 @@ Updates for wireless-ext/cfg80211  are not accepted.
 
   
 **BUGS**  
- 

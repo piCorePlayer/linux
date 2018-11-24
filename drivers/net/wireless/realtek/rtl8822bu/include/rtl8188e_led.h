@@ -15,6 +15,7 @@
 #ifndef __RTL8188E_LED_H__
 #define __RTL8188E_LED_H__
 
+#ifdef CONFIG_RTW_SW_LED
 
 /* ********************************************************************************
  * Interface to manipulate LED objects.
@@ -33,3 +34,4 @@
 #endif
 
 #endif
+#endif /*CONFIG_RTW_SW_LED*/

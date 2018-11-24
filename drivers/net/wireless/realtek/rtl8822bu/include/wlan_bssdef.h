@@ -77,6 +77,7 @@ typedef enum _NDIS_802_11_NETWORK_INFRASTRUCTURE {
 	Ndis802_11InfrastructureMax,     /* Not a real value, defined as upper bound */
 	Ndis802_11APMode,
 	Ndis802_11Monitor,
+	Ndis802_11_mesh,
 } NDIS_802_11_NETWORK_INFRASTRUCTURE, *PNDIS_802_11_NETWORK_INFRASTRUCTURE;
 
 
@@ -521,7 +522,12 @@ typedef struct _WLAN_PHY_INFO {
 	u8	SignalStrength;/* (in percentage) */
 	u8	SignalQuality;/* (in percentage) */
 	u8	Optimum_antenna;  /* for Antenna diversity */
-	u8	Reserved_0;
+	u8	is_cck_rate;	/* 1:cck_rate */
+	s8	rx_snr[4];
+#ifdef CONFIG_RTW_80211K
+	u32	free_cnt; 	/* freerun counter */
+	u8	rm_en_cap[5];
+#endif
 } WLAN_PHY_INFO, *PWLAN_PHY_INFO;
 
 typedef struct _WLAN_BCN_INFO {
@@ -537,6 +543,13 @@ typedef struct _WLAN_BCN_INFO {
 	unsigned char	ht_info_infos_0;
 } WLAN_BCN_INFO, *PWLAN_BCN_INFO;
 
+enum bss_type {
+	BSS_TYPE_UNDEF,
+	BSS_TYPE_BCN = 1,
+	BSS_TYPE_PROB_REQ = 2,
+	BSS_TYPE_PROB_RSP = 3,
+};
+
 /* temporally add #pragma pack for structure alignment issue of
 *   WLAN_BSSID_EX and get_WLAN_BSSID_EX_sz()
 */
@@ -547,8 +560,9 @@ typedef struct _WLAN_BCN_INFO {
 typedef struct _WLAN_BSSID_EX {
 	ULONG  Length;
 	NDIS_802_11_MAC_ADDRESS  MacAddress;
-	UCHAR  Reserved[2];/* [0]: IS beacon frame */
+	UCHAR  Reserved[2];/* [0]: IS beacon frame , bss_type*/
 	NDIS_802_11_SSID  Ssid;
+	NDIS_802_11_SSID  mesh_id;
 	ULONG  Privacy;
 	NDIS_802_11_RSSI  Rssi;/* (in dBM,raw data ,get from PHY) */
 	NDIS_802_11_NETWORK_TYPE  NetworkTypeInUse;
@@ -569,7 +583,7 @@ WLAN_BSSID_EX, *PWLAN_BSSID_EX;
 
 #define BSS_EX_IES(bss_ex) ((bss_ex)->IEs)
 #define BSS_EX_IES_LEN(bss_ex) ((bss_ex)->IELength)
-#define BSS_EX_FIXED_IE_OFFSET(bss_ex) ((bss_ex)->Reserved[0] == 2 ? 0 : 12)
+#define BSS_EX_FIXED_IE_OFFSET(bss_ex) ((bss_ex)->Reserved[0] == BSS_TYPE_PROB_REQ ? 0 : 12)
 #define BSS_EX_TLV_IES(bss_ex) (BSS_EX_IES((bss_ex)) + BSS_EX_FIXED_IE_OFFSET((bss_ex)))
 #define BSS_EX_TLV_IES_LEN(bss_ex) (BSS_EX_IES_LEN((bss_ex)) - BSS_EX_FIXED_IE_OFFSET((bss_ex)))
 
@@ -603,7 +617,7 @@ struct	wlan_network {
 	_list	list;
 	int	network_type;	/* refer to ieee80211.h for WIRELESS_11A/B/G */
 	int	fixed;			/* set to fixed when not to be removed as site-surveying */
-	unsigned long	last_scanned; /* timestamp for the network */
+	systime last_scanned; /* timestamp for the network */
 	int	aid;			/* will only be valid when a BSS is joinned. */
 	int	join_res;
 	WLAN_BSSID_EX	network; /* must be the last item */

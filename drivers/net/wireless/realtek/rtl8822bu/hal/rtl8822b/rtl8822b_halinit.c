@@ -48,7 +48,15 @@ void rtl8822b_init_hal_spec(PADAPTER adapter)
 			    | WL_FUNC_TDLS
 			    ;
 
+	hal_spec->pg_txpwr_saddr = 0x10;
+
 	hal_spec->hci_type = 0;
+
+	rtw_macid_ctl_init_sleep_reg(adapter_to_macidctl(adapter)
+		, REG_MACID_SLEEP_8822B
+		, REG_MACID_SLEEP1_8822B
+		, REG_MACID_SLEEP2_8822B
+		, REG_MACID_SLEEP3_8822B);
 }
 
 u32 rtl8822b_power_on(PADAPTER adapter)
@@ -154,7 +162,7 @@ u8 rtl8822b_hal_init(PADAPTER adapter)
 		hal->firmware_version, hal->firmware_sub_version, hal->firmware_size);
 
 	/* Sync driver status with hardware setting */
-	rtl8822b_rcr_get(adapter, NULL);
+	rtw_hal_get_hwreg(adapter, HW_VAR_RCR, NULL);
 	hal->bFWReady = _TRUE;
 	hal->fw_ractrl = _TRUE;
 
@@ -223,7 +231,7 @@ void rtl8822b_init_misc(PADAPTER adapter)
 	invalidate_cam_all(adapter);
 
 	/* check RCR/ICV bit */
-	rtl8822b_rcr_clear(adapter, BIT_ACRC32_8822B | BIT_AICV_8822B);
+	rtw_hal_rcr_clear(adapter, BIT_ACRC32_8822B | BIT_AICV_8822B);
 
 	/* clear rx ctrl frame */
 	rtw_write16(adapter, REG_RXFLTMAP1_8822B, 0);
@@ -237,6 +245,7 @@ void rtl8822b_init_misc(PADAPTER adapter)
 		rtw_read32(adapter, REG_FWHW_TXQ_CTRL_8822B) | BIT_EN_QUEUE_RPT_8822B(BIT(4)));
 #endif /* CONFIG_XMIT_ACK */
 
+	rtw_write8(adapter, REG_TIMER0_SRC_SEL_8822B, rtw_read8(adapter, REG_TIMER0_SRC_SEL_8822B) & ~BIT(6));
 }
 
 u32 rtl8822b_init(PADAPTER adapter)
@@ -309,10 +318,6 @@ void rtl8822b_init_default_value(PADAPTER adapter)
 
 	/* init phydm default value */
 	hal->bIQKInitialized = _FALSE;
-	hal->odmpriv.rf_calibrate_info.tm_trigger = 0; /* for IQK */
-	hal->odmpriv.rf_calibrate_info.thermal_value_hp_index = 0;
-	for (i = 0; i < HP_THERMAL_NUM; i++)
-		hal->odmpriv.rf_calibrate_info.thermal_value_hp[i] = 0;
 
 	/* init Efuse variables */
 	hal->EfuseUsedBytes = 0;

@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2017 Realtek Corporation.
+ * Copyright(c) 2012 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -117,7 +117,6 @@ typedef struct _RSVDPAGE_LOC_92E {
 void rtl8192e_set_FwPwrMode_cmd(PADAPTER padapter, u8 Mode);
 void rtl8192e_set_FwJoinBssReport_cmd(PADAPTER padapter, u8 mstatus);
 u8 rtl8192e_set_rssi_cmd(PADAPTER padapter, u8 *param);
-void rtl8192e_set_raid_cmd(PADAPTER padapter, u32 bitmap, u8 *arg, u8 bw);
 s32 FillH2CCmd_8192E(PADAPTER padapter, u8 ElementID, u32 CmdLen, u8 *pCmdBuffer);
 u8 GetTxBufferRsvdPageNum8192E(_adapter *padapter, bool wowlan);
 /* u8 rtl8192c_set_FwSelectSuspend_cmd(PADAPTER padapter, u8 bfwpoll, u16 period); */
@@ -129,17 +128,11 @@ s32 c2h_handler_8192e(_adapter *adapter, u8 id, u8 seq, u8 plen, u8 *payload);
 	void rtl8192e_set_p2p_ps_offload_cmd(PADAPTER padapter, u8 p2p_ps_state);
 #endif /* CONFIG_P2P */
 
-void CheckFwRsvdPageContent(PADAPTER padapter);
-
 #ifdef CONFIG_TDLS
 	#ifdef CONFIG_TDLS_CH_SW
 		void rtl8192e_set_BcnEarly_C2H_Rpt_cmd(PADAPTER padapter, u8 enable);
 	#endif
 #endif
-
-#ifdef CONFIG_TSF_RESET_OFFLOAD
-	int reset_tsf(PADAPTER Adapter, u8 reset_port);
-#endif /* CONFIG_TSF_RESET_OFFLOAD */
 
 /* / TX Feedback Content */
 #define	USEC_UNIT_FOR_8192E_C2H_TX_RPT_QUEUE_TIME			256

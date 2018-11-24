@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2017 Realtek Corporation.
+ * Copyright(c) 2007 - 2017  Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -8,8 +8,18 @@
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
+ *
+ * The full GNU General Public License is included in this distribution in the
+ * file called LICENSE.
+ *
+ * Contact Information:
+ * wlanfae <wlanfae@realtek.com>
+ * Realtek Corporation, No. 2, Innovation Road II, Hsinchu Science Park,
+ * Hsinchu 300, Taiwan.
+ *
+ * Larry Finger <Larry.Finger@lwfinger.net>
  *
  *****************************************************************************/
 
@@ -61,19 +71,18 @@
 
 #include "phydm.h"
 #include "phydm_hwconfig.h"
+#include "phydm_phystatus.h"
 #include "phydm_debug.h"
 #include "phydm_regdefine11ac.h"
 #include "phydm_regdefine11n.h"
 #include "phydm_interface.h"
 #include "phydm_reg.h"
 
-#include "phydm_adc_sampling.h"
-
 #if (DM_ODM_SUPPORT_TYPE & ODM_CE) && !defined(DM_ODM_CE_MAC80211)
 
 void
 phy_set_tx_power_limit(
-	struct PHY_DM_STRUCT	*p_dm_odm,
+	struct dm_struct	*dm,
 	u8	*regulation,
 	u8	*band,
 	u8	*bandwidth,
@@ -82,6 +91,25 @@ phy_set_tx_power_limit(
 	u8	*channel,
 	u8	*power_limit
 );
+
+enum hal_status
+rtw_phydm_fw_iqk(
+	struct dm_struct	*dm,
+	u8 clear,
+	u8 segment
+);
+
+enum hal_status
+rtw_phydm_cfg_phy_para(
+	struct dm_struct	*dm,
+	enum phydm_halmac_param config_type,
+	u32 offset,
+	u32 data,
+	u32 mask,
+	enum rf_path e_rf_path,
+	u32 delay_time
+);
+
 #endif
 
 #if (DM_ODM_SUPPORT_TYPE & ODM_AP)
@@ -104,13 +132,16 @@ phy_set_tx_power_limit(
 	#endif
 #endif
 
+#if (DM_ODM_SUPPORT_TYPE & (ODM_WIN | ODM_CE))
+#define	RTL8195B_SUPPORT 0	/*Just for PHYDM API development*/
+#define	RTL8198F_SUPPORT 0	/*Just for PHYDM API development*/
+#endif
+
 #if (RTL8188E_SUPPORT == 1)
 	#include "rtl8188e/hal8188erateadaptive.h" /* for  RA,Power training */
 	#include "rtl8188e/halhwimg8188e_mac.h"
 	#include "rtl8188e/halhwimg8188e_rf.h"
 	#include "rtl8188e/halhwimg8188e_bb.h"
-	#include "rtl8188e/halhwimg8188e_t_fw.h"
-	#include "rtl8188e/halhwimg8188e_s_fw.h"
 	#include "rtl8188e/phydm_regconfig8188e.h"
 	#include "rtl8188e/phydm_rtl8188e.h"
 	#include "rtl8188e/hal8188ereg.h"
@@ -144,7 +175,6 @@ phy_set_tx_power_limit(
 		#include "rtl8192e/halhwimg8192e_mac.h"
 		#include "rtl8192e/halhwimg8192e_rf.h"
 		#include "rtl8192e/phydm_regconfig8192e.h"
-		#include "rtl8192e/halhwimg8192e_fw.h"
 		#include "rtl8192e/hal8192ereg.h"
 	#endif
 	#if (DM_ODM_SUPPORT_TYPE == ODM_CE)
@@ -168,7 +198,6 @@ phy_set_tx_power_limit(
 		#include "rtl8812a/halhwimg8812a_mac.h"
 		#include "rtl8812a/halhwimg8812a_rf.h"
 		#include "rtl8812a/phydm_regconfig8812a.h"
-		#include "rtl8812a/halhwimg8812a_fw.h"
 		#include "rtl8812a/phydm_rtl8812a.h"
 	#endif
 
@@ -186,9 +215,6 @@ phy_set_tx_power_limit(
 	#include "rtl8814a/halhwimg8814a_bb.h"
 	#include "rtl8814a/version_rtl8814a.h"
 	#include "rtl8814a/phydm_rtl8814a.h"
-	#if (DM_ODM_SUPPORT_TYPE != ODM_AP)
-		#include "rtl8814a/halhwimg8814a_fw.h"
-	#endif
 	#if (DM_ODM_SUPPORT_TYPE == ODM_WIN)
 		#include "halrf/rtl8814a/halrf_8814a_win.h"
 	#elif (DM_ODM_SUPPORT_TYPE == ODM_CE)
@@ -221,7 +247,6 @@ phy_set_tx_power_limit(
 	#include "rtl8723b/halhwimg8723b_mac.h"
 	#include "rtl8723b/halhwimg8723b_rf.h"
 	#include "rtl8723b/halhwimg8723b_bb.h"
-	#include "rtl8723b/halhwimg8723b_fw.h"
 	#include "rtl8723b/phydm_regconfig8723b.h"
 	#include "rtl8723b/phydm_rtl8723b.h"
 	#include "rtl8723b/hal8723breg.h"
@@ -241,7 +266,6 @@ phy_set_tx_power_limit(
 	#include "rtl8821a/halhwimg8821a_mac.h"
 	#include "rtl8821a/halhwimg8821a_rf.h"
 	#include "rtl8821a/halhwimg8821a_bb.h"
-	#include "rtl8821a/halhwimg8821a_fw.h"
 	#include "rtl8821a/phydm_regconfig8821a.h"
 	#include "rtl8821a/phydm_rtl8821a.h"
 	#include "rtl8821a/version_rtl8821a.h"
@@ -258,27 +282,6 @@ phy_set_tx_power_limit(
 
 #if (DM_ODM_SUPPORT_TYPE == ODM_CE) && defined(DM_ODM_CE_MAC80211)
 #include "../halmac/halmac_reg2.h"
-
-#define	LDPC_HT_ENABLE_RX			BIT(0)
-#define	LDPC_HT_ENABLE_TX			BIT(1)
-#define	LDPC_HT_TEST_TX_ENABLE			BIT(2)
-#define	LDPC_HT_CAP_TX				BIT(3)
-
-#define	STBC_HT_ENABLE_RX			BIT(0)
-#define	STBC_HT_ENABLE_TX			BIT(1)
-#define	STBC_HT_TEST_TX_ENABLE			BIT(2)
-#define	STBC_HT_CAP_TX				BIT(3)
-
-
-#define	LDPC_VHT_ENABLE_RX			BIT(0)
-#define	LDPC_VHT_ENABLE_TX			BIT(1)
-#define	LDPC_VHT_TEST_TX_ENABLE			BIT(2)
-#define	LDPC_VHT_CAP_TX				BIT(3)
-
-#define	STBC_VHT_ENABLE_RX			BIT(0)
-#define	STBC_VHT_ENABLE_TX			BIT(1)
-#define	STBC_VHT_TEST_TX_ENABLE			BIT(2)
-#define	STBC_VHT_CAP_TX				BIT(3)
 #endif
 
 
@@ -286,7 +289,6 @@ phy_set_tx_power_limit(
 	#include "rtl8822b/halhwimg8822b_mac.h"
 	#include "rtl8822b/halhwimg8822b_rf.h"
 	#include "rtl8822b/halhwimg8822b_bb.h"
-	#include "rtl8822b/halhwimg8822b_fw.h"
 	#include "rtl8822b/phydm_regconfig8822b.h"
 	#include "halrf/rtl8822b/halrf_8822b.h"
 	#include "rtl8822b/phydm_rtl8822b.h"
@@ -311,7 +313,6 @@ phy_set_tx_power_limit(
 	#include "rtl8703b/halhwimg8703b_mac.h"
 	#include "rtl8703b/halhwimg8703b_rf.h"
 	#include "rtl8703b/halhwimg8703b_bb.h"
-	#include "rtl8703b/halhwimg8703b_fw.h"
 	#include "halrf/rtl8703b/halrf_8703b.h"
 	#include "rtl8703b/version_rtl8703b.h"
 	#if (DM_ODM_SUPPORT_TYPE == ODM_CE)
@@ -323,7 +324,6 @@ phy_set_tx_power_limit(
 	#include "rtl8188f/halhwimg8188f_mac.h"
 	#include "rtl8188f/halhwimg8188f_rf.h"
 	#include "rtl8188f/halhwimg8188f_bb.h"
-	#include "rtl8188f/halhwimg8188f_fw.h"
 	#include "rtl8188f/hal8188freg.h"
 	#include "rtl8188f/phydm_rtl8188f.h"
 	#include "rtl8188f/phydm_regconfig8188f.h"
@@ -341,7 +341,6 @@ phy_set_tx_power_limit(
 		#include "rtl8723d/halhwimg8723d_mac.h"
 		#include "rtl8723d/halhwimg8723d_rf.h"
 		#include "rtl8723d/phydm_regconfig8723d.h"
-		#include "rtl8723d/halhwimg8723d_fw.h"
 		#include "rtl8723d/hal8723dreg.h"
 		#include "rtl8723d/phydm_rtl8723d.h"
 		#include "halrf/rtl8723d/halrf_8723d.h"
@@ -360,7 +359,6 @@ phy_set_tx_power_limit(
 		#include "rtl8710b/halhwimg8710b_mac.h"
 		#include "rtl8710b/halhwimg8710b_rf.h"
 		#include "rtl8710b/phydm_regconfig8710b.h"
-		#include "rtl8710b/halhwimg8710b_fw.h"
 		#include "rtl8710b/hal8710breg.h"
 		#include "rtl8710b/phydm_rtl8710b.h"
 		#include "halrf/rtl8710b/halrf_8710b.h"
@@ -385,19 +383,23 @@ phy_set_tx_power_limit(
 
 #if (RTL8821C_SUPPORT == 1)
 	#include "rtl8821c/phydm_hal_api8821c.h"
-	#include "rtl8821c/halhwimg8821c_testchip_mac.h"
-	#include "rtl8821c/halhwimg8821c_testchip_rf.h"
-	#include "rtl8821c/halhwimg8821c_testchip_bb.h"
 	#include "rtl8821c/halhwimg8821c_mac.h"
 	#include "rtl8821c/halhwimg8821c_rf.h"
 	#include "rtl8821c/halhwimg8821c_bb.h"
-	#include "rtl8821c/halhwimg8821c_fw.h"
 	#include "rtl8821c/phydm_regconfig8821c.h"
 	#include "halrf/rtl8821c/halrf_8821c.h"
 	#include "rtl8821c/version_rtl8821c.h"
 	#if (DM_ODM_SUPPORT_TYPE == ODM_CE)
 		#include "rtl8821c_hal.h"
 	#endif
+#endif
+
+#if (RTL8195B_SUPPORT == 1)
+	#include "rtl8195b/phydm_hal_api8195b.h"
+#endif
+
+#if (RTL8198F_SUPPORT == 1)
+	#include "rtl8198f/phydm_hal_api8198F.h"
 #endif
 
 #endif /* __ODM_PRECOMP_H__ */

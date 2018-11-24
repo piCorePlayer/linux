@@ -16,7 +16,7 @@
 
 #include <drv_types.h>		/* struct dvobj_priv and etc. */
 #include "../../hal_halmac.h"
-#include "../rtl8822b.h"	 /* rtl8822b_cal_txdesc_chksum() */
+#include "../rtl8822b.h"	/* rtl8822b_cal_txdesc_chksum() and etc. */
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 5, 0)) || (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 18))
 #define usb_write_port_complete_not_xmitframe(purb, regs)	usb_write_port_complete_not_xmitframe(purb)
@@ -129,8 +129,6 @@ static u8 usb_write_data_not_xmitframe(void *d, u8 *pBuf, u32 size, u8 qsel)
 	struct dvobj_priv *pobj = (struct dvobj_priv *)d;
 	PADAPTER padapter = dvobj_get_primary_adapter(pobj);
 	HAL_DATA_TYPE	*pHalData = GET_HAL_DATA(padapter);
-	PHALMAC_ADAPTER halmac;
-	PHALMAC_API api;
 	u32 desclen, len;
 	u8 *buf;
 	u8 ret;
@@ -138,34 +136,48 @@ static u8 usb_write_data_not_xmitframe(void *d, u8 *pBuf, u32 size, u8 qsel)
 	u8 add_pkt_offset = 0;
 
 
-
-	halmac = dvobj_to_halmac((struct dvobj_priv *)d);
-	api = HALMAC_GET_API(halmac);
-
-	desclen = HALMAC_TX_DESC_SIZE_8822B;
+	desclen = rtl8822b_get_tx_desc_size(padapter);
 	len = desclen + size;
 
-	if (len % pHalData->UsbBulkOutSize == 0)
-		add_pkt_offset = 1;
+	if (qsel == HALMAC_TXDESC_QSEL_BEACON) {
 
-	if (add_pkt_offset == 1)
-		len = len + PACKET_OFFSET_SZ;
+		if (len % pHalData->UsbBulkOutSize == 0)
+			add_pkt_offset = 1;
 
-	buf = rtw_zmalloc(len);
-	if (!buf)
-		return _FALSE;
+		if (add_pkt_offset == 1)
+			len = len + PACKET_OFFSET_SZ;
 
-	if (add_pkt_offset == 1)
-		_rtw_memcpy(buf + desclen + PACKET_OFFSET_SZ , pBuf, size);
-	else
+		buf = rtw_zmalloc(len);
+		if (!buf)
+			return _FALSE;
+
+		if (add_pkt_offset == 1)
+			_rtw_memcpy(buf + desclen + PACKET_OFFSET_SZ , pBuf, size);
+		else
+			_rtw_memcpy(buf + desclen, pBuf, size);
+
+		SET_TX_DESC_TXPKTSIZE_8822B(buf, size);
+		if (add_pkt_offset == 1) {
+			SET_TX_DESC_OFFSET_8822B(buf, desclen + PACKET_OFFSET_SZ);
+			SET_TX_DESC_PKT_OFFSET_8822B(buf, 1);
+		} else
+			SET_TX_DESC_OFFSET_8822B(buf, desclen);
+
+	} else if (qsel == HALMAC_TXDESC_QSEL_H2C_CMD){
+
+		buf = rtw_zmalloc(len);
+		if (!buf)
+			return _FALSE;
+
 		_rtw_memcpy(buf + desclen, pBuf, size);
 
-	SET_TX_DESC_TXPKTSIZE_8822B(buf, size);
-	if (add_pkt_offset == 1) {
-		SET_TX_DESC_OFFSET_8822B(buf, desclen + PACKET_OFFSET_SZ);
-		SET_TX_DESC_PKT_OFFSET_8822B(buf, 1);
-	} else
-		SET_TX_DESC_OFFSET_8822B(buf, desclen);
+		SET_TX_DESC_TXPKTSIZE_8822B(buf, size);
+	} else {
+
+		RTW_ERR("%s: qsel may be error(%d)\n", __func__, qsel);
+
+		return _FALSE;
+	}
 
 	SET_TX_DESC_QSEL_8822B(buf, qsel);
 	rtl8822b_cal_txdesc_chksum(padapter, buf);
@@ -188,11 +200,9 @@ static u8 usb_write_data_rsvd_page_normal(void *d, u8 *pBuf, u32 size)
 {
 	struct dvobj_priv *pobj = (struct dvobj_priv *)d;
 	PADAPTER padapter = dvobj_get_primary_adapter(pobj);
-	PHALMAC_ADAPTER halmac = dvobj_to_halmac((struct dvobj_priv *)d);
 	struct xmit_priv	*pxmitpriv = &padapter->xmitpriv;
 	struct xmit_frame	*pcmdframe = NULL;
 	struct pkt_attrib	*pattrib = NULL;
-	PHALMAC_API api = HALMAC_GET_API(halmac);
 	u8 txdesoffset = 0;
 	u8 *buf = NULL;
 
@@ -230,11 +240,9 @@ static u8 usb_write_data_h2c_normal(void *d, u8 *pBuf, u32 size)
 {
 	struct dvobj_priv *pobj = (struct dvobj_priv *)d;
 	PADAPTER padapter = dvobj_get_primary_adapter(pobj);
-	PHALMAC_ADAPTER halmac = dvobj_to_halmac((struct dvobj_priv *)d);
 	struct xmit_priv	*pxmitpriv = &padapter->xmitpriv;
 	struct xmit_frame	*pcmdframe = NULL;
 	struct pkt_attrib	*pattrib = NULL;
-	PHALMAC_API api = HALMAC_GET_API(halmac);
 	u8 txdesoffset = 0;
 	u8 *buf = NULL;
 
@@ -297,7 +305,7 @@ static u8 usb_write_data_h2c(void *d, u8 *pBuf, u32 size)
 int rtl8822bu_halmac_init_adapter(PADAPTER padapter)
 {
 	struct dvobj_priv *d;
-	PHALMAC_PLATFORM_API api;
+	struct halmac_platform_api *api;
 	int err;
 
 

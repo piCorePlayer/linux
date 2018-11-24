@@ -98,14 +98,17 @@
 *	0x0300h ~ 0x03FFh	PCIe
 *
 * ----------------------------------------------------- */
-#define	REG_PCIE_CTRL_REG_8812A		0x0300
+#define	REG_PCIE_CTRL_REG_8812A			0x0300
 #define	REG_DBI_WDATA_8812			0x0348	/* DBI Write Data */
 #define	REG_DBI_RDATA_8812			0x034C	/* DBI Read Data */
-#define	REG_DBI_ADDR_8812				0x0350	/* DBI Address */
-#define	REG_DBI_FLAG_8812				0x0352	/* DBI Read/Write Flag */
+#define	REG_DBI_ADDR_8812			0x0350	/* DBI Address */
+#define	REG_DBI_FLAG_8812			0x0352	/* DBI Read/Write Flag */
 #define	REG_MDIO_WDATA_8812			0x0354	/* MDIO for Write PCIE PHY */
 #define	REG_MDIO_RDATA_8812			0x0356	/* MDIO for Reads PCIE PHY */
-#define	REG_MDIO_CTL_8812				0x0358	/* MDIO for Control */
+#define	REG_MDIO_CTL_8812			0x0358	/* MDIO for Control */
+#define REG_PCIE_HRPWM_8812A			0x0361  /* PCIe RPWM */
+#define REG_PCIE_HCPWM_8812A			0x0363  /* PCIe CPWM */
+
 #define	REG_PCIE_MULTIFET_CTRL_8812	0x036A	/* PCIE Multi-Fethc Control */
 
 /* -----------------------------------------------------

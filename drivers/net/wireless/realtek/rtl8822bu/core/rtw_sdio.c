@@ -123,11 +123,8 @@ u8 rtw_sdio_f0_read(struct dvobj_priv *d, u32 addr, void *buf, size_t len)
 	addr = RTW_SDIO_ADDR_F0_GEN(addr);
 
 	err = d->intf_ops->read(d, addr, buf, len, 0);
-	if (err) {
-		RTW_INFO("%s: [ERROR] Read f0 register FAIL!\n", __FUNCTION__);
+	if (err)
 		ret = _FAIL;
-	}
-
 
 	return ret;
 }

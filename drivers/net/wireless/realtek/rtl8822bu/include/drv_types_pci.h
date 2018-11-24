@@ -24,10 +24,8 @@
 #define	INTEL_VENDOR_ID				0x8086
 #define	SIS_VENDOR_ID					0x1039
 #define	ATI_VENDOR_ID					0x1002
-#define	AMD_VENDOR_ID					0x1022
-#define	NVI_VENDOR_ID					0x10de
-
 #define	ATI_DEVICE_ID					0x7914
+#define	AMD_VENDOR_ID					0x1022
 
 #define	PCI_MAX_BRIDGE_NUMBER			255
 #define	PCI_MAX_DEVICES				32
@@ -83,10 +81,9 @@ enum pci_bridge_vendor {
 	PCI_BRIDGE_VENDOR_INTEL = 0x0,/* 0b'0000,0001 */
 	PCI_BRIDGE_VENDOR_ATI, /* = 0x02, */ /* 0b'0000,0010 */
 	PCI_BRIDGE_VENDOR_AMD, /* = 0x04, */ /* 0b'0000,0100 */
-	PCI_BRIDGE_VENDOR_SIS, /* = 0x08, */ /* 0b'0000,1000 */
-	PCI_BRIDGE_VENDOR_NVI, /* = 0x10, */ /* 0b'0001,0000 */
+	PCI_BRIDGE_VENDOR_SIS ,/* = 0x08, */ /* 0b'0000,1000 */
 	PCI_BRIDGE_VENDOR_UNKNOWN, /* = 0x40, */ /* 0b'0100,0000 */
-	PCI_BRIDGE_VENDOR_MAX, /* = 0x80 */
+	PCI_BRIDGE_VENDOR_MAX ,/* = 0x80 */
 } ;
 
 /* copy this data structor defination from MSDN SDK */

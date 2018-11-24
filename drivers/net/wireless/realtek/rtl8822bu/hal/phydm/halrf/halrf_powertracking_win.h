@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2011 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2007 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,17 +11,10 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 
 #ifndef	__PHYDMPOWERTRACKING_H__
 #define    __PHYDMPOWERTRACKING_H__
-
-#define HALRF_POWRTRACKING_VER	"1.1"
 
 #define	DPK_DELTA_MAPPING_NUM	13
 #define	index_mapping_HP_NUM	15
@@ -43,7 +36,6 @@
 
 #define IQK_MATRIX_SETTINGS_NUM	(14+24+21) /* Channels_2_4G_NUM + Channels_5G_20M_NUM + Channels_5G */
 #define	AVG_THERMAL_NUM		8
-#define	HP_THERMAL_NUM		8
 #define	iqk_matrix_reg_num	8
 #define	IQK_MAC_REG_NUM		4
 #define	IQK_ADDA_REG_NUM		16
@@ -73,33 +65,33 @@ static u8 delta_swing_table_idx_2ga_n_8188e[] = {0, 0, 0, 2, 2, 3, 3, 4, 4, 4, 4
 
 void
 odm_txpowertracking_check(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 void
 odm_txpowertracking_check_ap(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 void
 odm_txpowertracking_thermal_meter_init(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 void
 odm_txpowertracking_init(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 void
 odm_txpowertracking_check_mp(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 
 void
 odm_txpowertracking_check_ce(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 #if (DM_ODM_SUPPORT_TYPE & (ODM_WIN))
@@ -107,18 +99,18 @@ odm_txpowertracking_check_ce(
 
 void
 odm_txpowertracking_thermal_meter_check(
-	struct _ADAPTER		*adapter
+	void		*adapter
 );
 
 #endif
 
-struct _IQK_MATRIX_REGS_SETTING {
+struct iqk_matrix_regs_setting {
 	boolean	is_iqk_done;
 	s32		value[3][iqk_matrix_reg_num];
 	boolean	is_bw_iqk_result_saved[3];
 };
 
-struct odm_rf_calibration_structure {
+struct dm_rf_calibration_struct {
 	/* for tx power tracking */
 
 	u32	rega24; /* for TempCCK */
@@ -161,9 +153,7 @@ struct odm_rf_calibration_structure {
 	s8	xtal_offset;
 	s8	xtal_offset_last;
 
-	u8	thermal_value_hp[HP_THERMAL_NUM];
-	u8	thermal_value_hp_index;
-	struct _IQK_MATRIX_REGS_SETTING iqk_matrix_reg_setting[IQK_MATRIX_SETTINGS_NUM];
+	struct iqk_matrix_regs_setting iqk_matrix_reg_setting[IQK_MATRIX_SETTINGS_NUM];
 	u8	delta_lck;
 	s8  bb_swing_diff_2g, bb_swing_diff_5g; /* Unit: dB */
 	u8  delta_swing_table_idx_2g_cck_a_p[DELTA_SWINGIDX_SIZE];
@@ -272,6 +262,7 @@ struct odm_rf_calibration_structure {
 	u64	iqk_start_time;
 	u64	iqk_total_progressing_time;
 	u64	iqk_progressing_time;
+	u64	lck_progressing_time;
 	u32  lok_result;
 	u8	iqk_step;
 	u8	kcount;
@@ -300,8 +291,6 @@ struct odm_rf_calibration_structure {
 	/*Add by Yuchen for Kfree Phydm*/
 	u8			reg_rf_kfree_enable;	/*for registry*/
 	u8			rf_kfree_enable;		/*for efuse enable check*/
-
-	HALMAC_PWR_TRACKING_OPTION	HALMAC_PWR_TRACKING_INFO;
 };
 
 

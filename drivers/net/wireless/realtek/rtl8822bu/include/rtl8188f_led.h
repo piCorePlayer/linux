@@ -14,6 +14,7 @@
  *****************************************************************************/
 #ifndef __RTL8188F_LED_H__
 #define __RTL8188F_LED_H__
+#ifdef CONFIG_RTW_SW_LED
 
 #include <drv_conf.h>
 #include <osdep_service.h>
@@ -41,3 +42,4 @@ void rtl8188fe_DeInitSwLeds(PADAPTER padapter);
 #endif
 
 #endif
+#endif/*CONFIG_RTW_SW_LED*/

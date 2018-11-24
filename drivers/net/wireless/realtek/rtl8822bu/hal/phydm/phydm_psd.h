@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2017 Realtek Corporation.
+ * Copyright(c) 2007 - 2017  Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -8,8 +8,18 @@
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
+ *
+ * The full GNU General Public License is included in this distribution in the
+ * file called LICENSE.
+ *
+ * Contact Information:
+ * wlanfae <wlanfae@realtek.com>
+ * Realtek Corporation, No. 2, Innovation Road II, Hsinchu Science Park,
+ * Hsinchu 300, Taiwan.
+ *
+ * Larry Finger <Larry.Finger@lwfinger.net>
  *
  *****************************************************************************/
 
@@ -19,15 +29,10 @@
 /*#define PSD_VERSION	"1.0"*/  /*2016.09.22  Dino*/
 #define PSD_VERSION	"1.1"  /*2016.10.07  Dino, Add Option for PSD Tone index Selection */
 
-#if (CONFIG_PSD_TOOL == 1)
+#ifdef CONFIG_PSD_TOOL
 
 
-#define	STOP_TRX_SUCCESS	1
-#define	STOP_TRX_FAIL	0
-
-
-struct _PHYDM_PSD_ {
-
+struct psd_info {
 	u8	psd_in_progress;
 	u32	psd_reg;
 	u32	psd_report_reg;
@@ -36,6 +41,7 @@ struct _PHYDM_PSD_ {
 	u16	fft_smp_point;
 	u32	initial_gain_backup;
 	u32	rf_0x18_bkp;
+	u32	rf_0x18_bkp_b;
 	u16	psd_fc_channel;
 	u32	psd_bw_rf_reg;
 	u8	psd_result[128];
@@ -44,14 +50,14 @@ struct _PHYDM_PSD_ {
 
 u32
 phydm_get_psd_data(
-	void			*p_dm_void,
+	void			*dm_void,
 	u32			psd_tone_idx,
 	u32			igi
 );
 
 void
 phydm_psd_debug(
-	void		*p_dm_void,
+	void		*dm_void,
 	char		input[][16],
 	u32		*_used,
 	char		*output,
@@ -61,7 +67,7 @@ phydm_psd_debug(
 
 void
 phydm_psd(
-	void		*p_dm_void,
+	void		*dm_void,
 	u32		igi,
 	u16		start_point,
 	u16		stop_point
@@ -69,7 +75,7 @@ phydm_psd(
 
 void
 phydm_psd_para_setting(
-	void		*p_dm_void,
+	void		*dm_void,
 	u8		sw_avg_time,
 	u8		hw_avg_time,
 	u8		i_q_setting,
@@ -82,12 +88,12 @@ phydm_psd_para_setting(
 
 void
 phydm_psd_init(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 u8
 phydm_get_psd_result_table(
-	void		*p_dm_void,
+	void		*dm_void,
 	int		index
 );
 

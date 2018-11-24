@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2011 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2007 - 2017 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -11,12 +11,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
- *
- *
- ******************************************************************************/
+ *****************************************************************************/
 
 #ifndef __HAL_PHY_RF_H__
 #define __HAL_PHY_RF_H__
@@ -33,7 +28,7 @@
 #endif
 
 #if (RTL8821C_SUPPORT == 1)
-	#include "halrf/rtl8822b/halrf_iqk_8821c.h"
+	#include "halrf/rtl8821c/halrf_iqk_8821c.h"
 #endif
 
 enum pwrtrack_method {
@@ -52,7 +47,7 @@ typedef void	(*func_swing8814only)(void *, u8 **, u8 **, u8 **, u8 **);
 typedef void	(*func_all_swing)(void *, u8 **, u8 **, u8 **, u8 **, u8 **, u8 **, u8 **, u8 **);
 
 
-struct _TXPWRTRACK_CFG {
+struct txpwrtrack_cfg {
 	u8		swing_table_size_cck;
 	u8		swing_table_size_ofdm;
 	u8		threshold_iqk;
@@ -70,39 +65,39 @@ struct _TXPWRTRACK_CFG {
 
 void
 configure_txpower_track(
-	void		*p_dm_void,
-	struct _TXPWRTRACK_CFG	*p_config
+	void		*dm_void,
+	struct txpwrtrack_cfg	*config
 );
 
 
 void
 odm_txpowertracking_callback_thermal_meter(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 #if (RTL8192E_SUPPORT == 1)
 void
 odm_txpowertracking_callback_thermal_meter_92e(
-	void		*p_dm_void
+	void		*dm_void
 );
 #endif
 
 #if (RTL8814A_SUPPORT == 1)
 void
 odm_txpowertracking_callback_thermal_meter_jaguar_series2(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 #elif ODM_IC_11AC_SERIES_SUPPORT
 void
 odm_txpowertracking_callback_thermal_meter_jaguar_series(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 #elif (RTL8197F_SUPPORT == 1 || RTL8822B_SUPPORT == 1)
 void
 odm_txpowertracking_callback_thermal_meter_jaguar_series3(
-	void		*p_dm_void
+	void		*dm_void
 );
 
 #endif
@@ -114,14 +109,14 @@ odm_txpowertracking_callback_thermal_meter_jaguar_series3(
 
 void
 odm_reset_iqk_result(
-	void		*p_dm_void
+	void		*dm_void
 );
 u8
 odm_get_right_chnl_place_for_iqk(
 	u8 chnl
 );
 
-void phydm_rf_init(void		*p_dm_void);
-void phydm_rf_watchdog(void		*p_dm_void);
+void phydm_rf_init(void		*dm_void);
+void phydm_rf_watchdog(void		*dm_void);
 
 #endif	/*  #ifndef __HAL_PHY_RF_H__ */

@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2011 Realtek Corporation. All rights reserved.
+ * Copyright(c) 2007 - 2017  Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -8,15 +8,20 @@
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
  * more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110, USA
+ * The full GNU General Public License is included in this distribution in the
+ * file called LICENSE.
  *
+ * Contact Information:
+ * wlanfae <wlanfae@realtek.com>
+ * Realtek Corporation, No. 2, Innovation Road II, Hsinchu Science Park,
+ * Hsinchu 300, Taiwan.
  *
- ******************************************************************************/
+ * Larry Finger <Larry.Finger@lwfinger.net>
+ *
+ *****************************************************************************/
 
 #include "mp_precomp.h"
 #include "../phydm_precomp.h"
@@ -25,44 +30,44 @@
 
 void
 odm_config_rf_reg_8822b(
-	struct PHY_DM_STRUCT				*p_dm_odm,
+	struct dm_struct				*dm,
 	u32					addr,
 	u32					data,
-	enum odm_rf_radio_path_e		RF_PATH,
+	enum rf_path		rf_path,
 	u32					reg_addr
 )
 {
-	if (p_dm_odm->fw_offload_ability & PHYDM_PHY_PARAM_OFFLOAD) {
+	if (dm->fw_offload_ability & PHYDM_PHY_PARAM_OFFLOAD) {
 		if (addr == 0xffe)
-			phydm_set_reg_by_fw(p_dm_odm,
+			phydm_set_reg_by_fw(dm,
 							PHYDM_HALMAC_CMD_DELAY_MS,
 							reg_addr,
 							data,
 							RFREGOFFSETMASK,
-							RF_PATH,
+							rf_path,
 							50);
 		else if (addr == 0xfe)
-			phydm_set_reg_by_fw(p_dm_odm,
+			phydm_set_reg_by_fw(dm,
 							PHYDM_HALMAC_CMD_DELAY_US,
 							reg_addr,
 							data,
 							RFREGOFFSETMASK,
-							RF_PATH,
+							rf_path,
 							100);
 		else {	
-			phydm_set_reg_by_fw(p_dm_odm,
+			phydm_set_reg_by_fw(dm,
 								PHYDM_HALMAC_CMD_RF_W,
 								reg_addr,
 								data,
 								RFREGOFFSETMASK,
-								RF_PATH,
+								rf_path,
 								0);
-			phydm_set_reg_by_fw(p_dm_odm,
+			phydm_set_reg_by_fw(dm,
 								PHYDM_HALMAC_CMD_DELAY_US,
 								reg_addr,
 								data,
 								RFREGOFFSETMASK,
-								RF_PATH,
+								rf_path,
 								1);
 		}
 	} else {
@@ -79,7 +84,7 @@ odm_config_rf_reg_8822b(
 			ODM_delay_us(100);
 #endif
 		} else {
-			odm_set_rf_reg(p_dm_odm, RF_PATH, reg_addr, RFREGOFFSETMASK, data);
+			odm_set_rf_reg(dm, rf_path, reg_addr, RFREGOFFSETMASK, data);
 
 			/* Add 1us delay between BB/RF register setting. */
 			ODM_delay_us(1);
@@ -89,7 +94,7 @@ odm_config_rf_reg_8822b(
 
 void
 odm_config_rf_radio_a_8822b(
-	struct PHY_DM_STRUCT				*p_dm_odm,
+	struct dm_struct				*dm,
 	u32					addr,
 	u32					data
 )
@@ -97,14 +102,14 @@ odm_config_rf_radio_a_8822b(
 	u32	content = 0x1000;							/* RF_Content: radioa_txt */
 	u32	maskfor_phy_set = (u32)(content & 0xE000);
 
-	odm_config_rf_reg_8822b(p_dm_odm, addr, data, ODM_RF_PATH_A, addr | maskfor_phy_set);
+	odm_config_rf_reg_8822b(dm, addr, data, RF_PATH_A, addr | maskfor_phy_set);
 
-	ODM_RT_TRACE(p_dm_odm, ODM_COMP_INIT, ODM_DBG_TRACE, ("===> odm_config_rf_with_header_file: [RadioA] %08X %08X\n", addr, data));
+	PHYDM_DBG(dm, ODM_COMP_INIT, "===> config_rf: [RadioA] %08X %08X\n", addr, data);
 }
 
 void
 odm_config_rf_radio_b_8822b(
-	struct PHY_DM_STRUCT				*p_dm_odm,
+	struct dm_struct				*dm,
 	u32					addr,
 	u32					data
 )
@@ -112,39 +117,39 @@ odm_config_rf_radio_b_8822b(
 	u32	content = 0x1001;							/* RF_Content: radiob_txt */
 	u32	maskfor_phy_set = (u32)(content & 0xE000);
 
-	odm_config_rf_reg_8822b(p_dm_odm, addr, data, ODM_RF_PATH_B, addr | maskfor_phy_set);
+	odm_config_rf_reg_8822b(dm, addr, data, RF_PATH_B, addr | maskfor_phy_set);
 
-	ODM_RT_TRACE(p_dm_odm, ODM_COMP_INIT, ODM_DBG_TRACE, ("===> odm_config_rf_with_header_file: [RadioB] %08X %08X\n", addr, data));
+	PHYDM_DBG(dm, ODM_COMP_INIT, "===> config_rf: [RadioB] %08X %08X\n", addr, data);
 }
 
 void
 odm_config_mac_8822b(
-	struct PHY_DM_STRUCT				*p_dm_odm,
+	struct dm_struct				*dm,
 	u32					addr,
 	u8					data
 )
 {
-	if (p_dm_odm->fw_offload_ability & PHYDM_PHY_PARAM_OFFLOAD)
-		phydm_set_reg_by_fw(p_dm_odm,
+	if (dm->fw_offload_ability & PHYDM_PHY_PARAM_OFFLOAD)
+		phydm_set_reg_by_fw(dm,
 							PHYDM_HALMAC_CMD_MAC_W8,
 							addr,
 							data,
 							0,
-							0,
+							(enum rf_path)0,
 							0);
 	else
-		odm_write_1byte(p_dm_odm, addr, data);
-	ODM_RT_TRACE(p_dm_odm, ODM_COMP_INIT, ODM_DBG_LOUD, ("===> config_mac: [MAC_REG] %08X %08X\n", addr, data));
+		odm_write_1byte(dm, addr, data);
+	PHYDM_DBG(dm, ODM_COMP_INIT, "===> config_mac: [MAC_REG] %08X %08X\n", addr, data);
 }
 
 void
 odm_update_agc_big_jump_lmt_8822b(
-	struct PHY_DM_STRUCT				*p_dm_odm,
+	struct dm_struct				*dm,
 	u32					addr,
 	u32					data
 )
 {
-	struct _dynamic_initial_gain_threshold_	*p_dm_dig_table = &p_dm_odm->dm_dig_table;
+	struct phydm_dig_struct	*dig_tab = &dm->dm_dig_table;
 	u8	rf_gain_idx = (u8)((data & 0xFF000000) >> 24);
 	u8	bb_gain_idx = (u8)((data & 0x00ff0000) >> 16);
 	u8	agc_table_idx = (u8)((data & 0x00000f00) >> 8);
@@ -154,48 +159,48 @@ odm_update_agc_big_jump_lmt_8822b(
 		return;
 
 	/*dbg_print("data = 0x%x, rf_gain_idx = 0x%x, bb_gain_idx = 0x%x, agc_table_idx = 0x%x\n", data, rf_gain_idx, bb_gain_idx, agc_table_idx);*/
-	/*dbg_print("rf_gain_idx = 0x%x, p_dm_dig_table->rf_gain_idx = 0x%x\n", rf_gain_idx, p_dm_dig_table->rf_gain_idx);*/
+	/*dbg_print("rf_gain_idx = 0x%x, dig_tab->rf_gain_idx = 0x%x\n", rf_gain_idx, dig_tab->rf_gain_idx);*/
 
 	if (bb_gain_idx > 0x3c) {
-		if ((rf_gain_idx == p_dm_dig_table->rf_gain_idx) && (is_limit == false)) {
+		if ((rf_gain_idx == dig_tab->rf_gain_idx) && !is_limit) {
 			is_limit = true;
-			p_dm_dig_table->big_jump_lmt[agc_table_idx] = bb_gain_idx - 2;
-			ODM_RT_TRACE(p_dm_odm, ODM_COMP_DIG, ODM_DBG_TRACE, ("===> [AGC_TAB] big_jump_lmt [%d] = 0x%x\n", agc_table_idx, p_dm_dig_table->big_jump_lmt[agc_table_idx]));
+			dig_tab->big_jump_lmt[agc_table_idx] = bb_gain_idx - 2;
+			PHYDM_DBG(dm, DBG_DIG, "===> [AGC_TAB] big_jump_lmt [%d] = 0x%x\n", agc_table_idx, dig_tab->big_jump_lmt[agc_table_idx]);
 		}
 	} else
 		is_limit = false;
 
-	p_dm_dig_table->rf_gain_idx = rf_gain_idx;
+	dig_tab->rf_gain_idx = rf_gain_idx;
 
 }
 
 void
 odm_config_bb_agc_8822b(
-	struct PHY_DM_STRUCT				*p_dm_odm,
+	struct dm_struct				*dm,
 	u32					addr,
 	u32					bitmask,
 	u32					data
 )
 {
-	odm_update_agc_big_jump_lmt_8822b(p_dm_odm, addr, data);
+	odm_update_agc_big_jump_lmt_8822b(dm, addr, data);
 
-	if (p_dm_odm->fw_offload_ability & PHYDM_PHY_PARAM_OFFLOAD)
-		phydm_set_reg_by_fw(p_dm_odm,
+	if (dm->fw_offload_ability & PHYDM_PHY_PARAM_OFFLOAD)
+		phydm_set_reg_by_fw(dm,
 							PHYDM_HALMAC_CMD_BB_W32,
 							addr,
 							data,
 							bitmask,
-							0,
+							(enum rf_path)0,
 							0);
 	else
-		odm_set_bb_reg(p_dm_odm, addr, bitmask, data);
+		odm_set_bb_reg(dm, addr, bitmask, data);
 
-	ODM_RT_TRACE(p_dm_odm, ODM_COMP_INIT, ODM_DBG_TRACE, ("===> odm_config_bb_with_header_file: [AGC_TAB] %08X %08X\n", addr, data));
+	PHYDM_DBG(dm, ODM_COMP_INIT, "===> config_bb: [AGC_TAB] %08X %08X\n", addr, data);
 }
 
 void
 odm_config_bb_phy_reg_pg_8822b(
-	struct PHY_DM_STRUCT				*p_dm_odm,
+	struct dm_struct				*dm,
 	u32					band,
 	u32					rf_path,
 	u32					tx_num,
@@ -212,24 +217,24 @@ odm_config_bb_phy_reg_pg_8822b(
 #endif
 	} else {
 #if (DM_ODM_SUPPORT_TYPE & ODM_CE)
-		phy_store_tx_power_by_rate(p_dm_odm->adapter, band, rf_path, tx_num, addr, bitmask, data);
+		phy_store_tx_power_by_rate(dm->adapter, band, rf_path, tx_num, addr, bitmask, data);
 #elif (DM_ODM_SUPPORT_TYPE & ODM_WIN)
-		PHY_StoreTxPowerByRate(p_dm_odm->adapter, band, rf_path, tx_num, addr, bitmask, data);
+		PHY_StoreTxPowerByRate((PADAPTER)dm->adapter, band, rf_path, tx_num, addr, bitmask, data);
 #endif
 
 	}
-	ODM_RT_TRACE(p_dm_odm, ODM_COMP_INIT, ODM_DBG_LOUD, ("===> odm_config_bb_with_header_file: [PHY_REG] %08X %08X %08X\n", addr, bitmask, data));
+	PHYDM_DBG(dm, ODM_COMP_INIT, "===> config_bb: [PHY_REG] %08X %08X %08X\n", addr, bitmask, data);
 }
 
 void
 odm_config_bb_phy_8822b(
-	struct PHY_DM_STRUCT				*p_dm_odm,
+	struct dm_struct				*dm,
 	u32					addr,
 	u32					bitmask,
 	u32					data
 )
 {
-	if (p_dm_odm->fw_offload_ability & PHYDM_PHY_PARAM_OFFLOAD) {
+	if (dm->fw_offload_ability & PHYDM_PHY_PARAM_OFFLOAD) {
 		u32 delay_time = 0;
 
 		if (addr >= 0xf9 && addr <= 0xfe) {
@@ -241,28 +246,28 @@ odm_config_bb_phy_8822b(
 				delay_time = 1;
 
 			if (addr >= 0xfc && addr <=0xfe)
-				phydm_set_reg_by_fw(p_dm_odm,
+				phydm_set_reg_by_fw(dm,
 									PHYDM_HALMAC_CMD_DELAY_MS,
 									addr,
 									data,
 									bitmask,
-									0,
+									(enum rf_path)0,
 									delay_time);
 			else
-				phydm_set_reg_by_fw(p_dm_odm,
+				phydm_set_reg_by_fw(dm,
 									PHYDM_HALMAC_CMD_DELAY_US,
 									addr,
 									data,
 									bitmask,
-									0,
+									(enum rf_path)0,
 									delay_time);
 		} else 
-			phydm_set_reg_by_fw(p_dm_odm,
+			phydm_set_reg_by_fw(dm,
 								PHYDM_HALMAC_CMD_BB_W32,
 								addr,
 								data,
 								bitmask,
-								0,
+								(enum rf_path)0,
 								0);
 	} else {
 		if (addr == 0xfe)
@@ -282,15 +287,15 @@ odm_config_bb_phy_8822b(
 		else if (addr == 0xf9)
 			ODM_delay_us(1);
 		else
-			odm_set_bb_reg(p_dm_odm, addr, bitmask, data);
+			odm_set_bb_reg(dm, addr, bitmask, data);
 	}
 	
-	ODM_RT_TRACE(p_dm_odm, ODM_COMP_INIT, ODM_DBG_LOUD, ("===> config_bb: [PHY_REG] %08X %08X\n", addr, data));
+	PHYDM_DBG(dm, ODM_COMP_INIT, "===> config_bb: [PHY_REG] %08X %08X\n", addr, data);
 }
 
 void
 odm_config_bb_txpwr_lmt_8822b(
-	struct PHY_DM_STRUCT				*p_dm_odm,
+	struct dm_struct				*dm,
 	u8					*regulation,
 	u8					*band,
 	u8					*bandwidth,
@@ -301,10 +306,10 @@ odm_config_bb_txpwr_lmt_8822b(
 )
 {
 #if (DM_ODM_SUPPORT_TYPE & ODM_CE)
-	phy_set_tx_power_limit(p_dm_odm, regulation, band,
+	phy_set_tx_power_limit(dm, regulation, band,
 		       bandwidth, rate_section, rf_path, channel, power_limit);
 #elif (DM_ODM_SUPPORT_TYPE & ODM_WIN)
-	PHY_SetTxPowerLimit(p_dm_odm, regulation, band,
+	PHY_SetTxPowerLimit(dm, regulation, band,
 		       bandwidth, rate_section, rf_path, channel, power_limit);
 #endif
 }

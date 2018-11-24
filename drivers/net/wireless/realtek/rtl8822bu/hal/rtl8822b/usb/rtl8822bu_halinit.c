@@ -48,7 +48,7 @@ u8 rtl8822bu_fw_ips_init(_adapter *padapter)
 
 	if (pwrctl->bips_processing == _TRUE && psrtpriv->silent_reset_inprogress == _FALSE
 		&& GET_HAL_DATA(padapter)->bFWReady == _TRUE && pwrctl->pre_ips_type == 0) {
-		u32 start_time;
+		systime start_time;
 		u8 cpwm_orig, cpwm_now, rpwm;
 		u8 bMacPwrCtrlOn = _TRUE;
 
@@ -177,27 +177,38 @@ u8 rtl8822bu_fw_ips_deinit(_adapter *padapter)
 
 #endif
 
-static void hal_init_misc(PADAPTER padapter)
+static void init_hwled(PADAPTER adapter, u8 enable)
 {
-	if (padapter->registrypriv.wifi_spec) {
-		padapter->registrypriv.adaptivity_en = 1;
-		padapter->registrypriv.adaptivity_mode = 0;
-	}
+	u8 mode = 0;
+	struct led_priv *ledpriv = adapter_to_led(adapter);
+
+	if (ledpriv->LedStrategy != HW_LED)
+		return;
+
+	rtw_halmac_led_cfg(adapter_to_dvobj(adapter), enable, mode);
+}
+
+static void hal_init_misc(PADAPTER adapter)
+{
+#ifdef CONFIG_RTW_LED
+	init_hwled(adapter, 1);
+#endif /* CONFIG_RTW_LED */
+
 }
 
 u32 rtl8822bu_init(PADAPTER padapter)
 {
 	u8 status = _SUCCESS;
-	u32 init_start_time = rtw_get_current_time();
+	systime init_start_time = rtw_get_current_time();
 
 #ifdef CONFIG_FWLPS_IN_IPS
 	if (_SUCCESS == rtl8822bu_fw_ips_init(padapter))
 		goto exit;
 #endif
 
-	hal_init_misc(padapter);
-
 	rtl8822b_init(padapter);
+
+	hal_init_misc(padapter);
 
 exit:
 	RTW_INFO("%s in %dms\n", __func__, rtw_get_passing_time_ms(init_start_time));
@@ -205,9 +216,11 @@ exit:
 	return status;
 }
 
-static void hal_deinit_misc(PADAPTER padapter)
+static void hal_deinit_misc(PADAPTER adapter)
 {
-
+#ifdef CONFIG_RTW_LED
+	init_hwled(adapter, 0);
+#endif /* CONFIG_RTW_LED */
 }
 
 u32 rtl8822bu_deinit(PADAPTER padapter)
@@ -402,7 +415,7 @@ void rtl8822bu_interface_configure(PADAPTER padapter)
 #ifdef CONFIG_USB_TX_AGGREGATION
 	/* according to value defined by halmac */
 	pHalData->UsbTxAggMode		= 1;
-	pHalData->UsbTxAggDescNum	= HALMAC_BLK_DESC_NUM_8822B;
+	rtw_halmac_usb_get_txagg_desc_num(pdvobjpriv, &pHalData->UsbTxAggDescNum);
 #endif /* CONFIG_USB_TX_AGGREGATION */
 
 #ifdef CONFIG_USB_RX_AGGREGATION

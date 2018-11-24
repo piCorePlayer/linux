@@ -156,11 +156,13 @@ typedef struct _RT_8723D_FIRMWARE_HDR {
 #define NORMAL_PAGE_NUM_HPQ_8723D		0x0C
 #define NORMAL_PAGE_NUM_LPQ_8723D		0x02
 #define NORMAL_PAGE_NUM_NPQ_8723D		0x02
+#define NORMAL_PAGE_NUM_EPQ_8723D		0x04
 
 /* Note: For Normal Chip Setting, modify later */
 #define WMM_NORMAL_PAGE_NUM_HPQ_8723D		0x30
 #define WMM_NORMAL_PAGE_NUM_LPQ_8723D		0x20
 #define WMM_NORMAL_PAGE_NUM_NPQ_8723D		0x20
+#define WMM_NORMAL_PAGE_NUM_EPQ_8723D		0x00
 
 
 #include "HalVerDef.h"
@@ -257,7 +259,7 @@ VOID Hal_EfuseParseBoardType_8723D(PADAPTER Adapter,
 
 void rtl8723d_set_hal_ops(struct hal_ops *pHalFunc);
 void init_hal_spec_8723d(_adapter *adapter);
-void SetHwReg8723D(PADAPTER padapter, u8 variable, u8 *val);
+u8 SetHwReg8723D(PADAPTER padapter, u8 variable, u8 *val);
 void GetHwReg8723D(PADAPTER padapter, u8 variable, u8 *val);
 u8 SetHalDefVar8723D(PADAPTER padapter, HAL_DEF_VARIABLE variable, void *pval);
 u8 GetHalDefVar8723D(PADAPTER padapter, HAL_DEF_VARIABLE variable, void *pval);
@@ -265,8 +267,6 @@ u8 GetHalDefVar8723D(PADAPTER padapter, HAL_DEF_VARIABLE variable, void *pval);
 /* register */
 void rtl8723d_InitBeaconParameters(PADAPTER padapter);
 void rtl8723d_InitBeaconMaxError(PADAPTER padapter, u8 InfraMode);
-void _InitBurstPktLen_8723DS(PADAPTER Adapter);
-void _InitLTECoex_8723DS(PADAPTER Adapter);
 void _InitMacAPLLSetting_8723D(PADAPTER Adapter);
 void _8051Reset8723(PADAPTER padapter);
 #ifdef CONFIG_WOWLAN
@@ -307,7 +307,7 @@ void Hal_ReadRFGainOffset(PADAPTER pAdapter, u8 *hwinfo, BOOLEAN AutoLoadFail);
 #ifdef CONFIG_PCI_HCI
 	BOOLEAN	InterruptRecognized8723DE(PADAPTER Adapter);
 	VOID	UpdateInterruptMask8723DE(PADAPTER Adapter, u32 AddMSR, u32 AddMSR1, u32 RemoveMSR, u32 RemoveMSR1);
-	u16 get_txbufdesc_idx_hwaddr(u16 ff_hwaddr);
+	u16 get_txbd_rw_reg(u16 ff_hwaddr);
 #endif
 
 #endif
