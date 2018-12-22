@@ -48,12 +48,12 @@ static const struct snd_pcm_hw_constraint_list es9023_8x_constraint_rates = {
 static int es9023_dai_startup(struct snd_pcm_substream *substream,
 	struct snd_soc_dai *dai)
 {
-	struct snd_soc_codec *codec = dai->codec;
-	struct es9023_priv *priv = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *component = dai->component;
+	struct es9023_priv *priv = snd_soc_component_get_drvdata(component);
 	int ret;
 
 
-	dev_dbg(codec->dev, "%s: set rates (32k-%s) constraint\n", __func__,
+	dev_dbg(component->dev, "%s: set rates (32k-%s) constraint\n", __func__,
 		((priv->rates_384k) ? "384k" : "192k"));
 
 	ret = snd_pcm_hw_constraint_list(substream->runtime, 0,
@@ -62,7 +62,7 @@ static int es9023_dai_startup(struct snd_pcm_substream *substream,
 						? &es9023_8x_constraint_rates
 						: &es9023_constraint_rates));
 	if (ret != 0) {
-		dev_err(codec->dev, "%s: Failed to set rates constraint: %d\n",
+		dev_err(component->dev, "%s: Failed to set rates constraint: %d\n",
 			__func__, ret);
 		return ret;
 	}
@@ -89,7 +89,7 @@ static struct snd_soc_dai_driver es9023_dai = {
 	.ops      = &es9023_dai_ops,
 };
 
-static struct snd_soc_codec_driver soc_codec_dev_es9023;
+static struct snd_soc_component_driver soc_component_dev_es9023;
 
 static int es9023_probe(struct platform_device *pdev)
 {
@@ -107,13 +107,13 @@ static int es9023_probe(struct platform_device *pdev)
 
 	dev_set_drvdata(&pdev->dev, priv);
 
-	return snd_soc_register_codec(&pdev->dev, &soc_codec_dev_es9023,
+	return snd_soc_register_component(&pdev->dev, &soc_component_dev_es9023,
 				      &es9023_dai, 1);
 }
 
 static int es9023_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_codec(&pdev->dev);
+	snd_soc_unregister_component(&pdev->dev);
 	return 0;
 }
 
@@ -123,7 +123,7 @@ static const struct of_device_id es9023_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, es9023_of_match);
 
-static struct platform_driver es9023_codec_driver = {
+static struct platform_driver es9023_component_driver = {
 	.probe  = es9023_probe,
 	.remove = es9023_remove,
 	.driver = {
@@ -133,7 +133,7 @@ static struct platform_driver es9023_codec_driver = {
 	},
 };
 
-module_platform_driver(es9023_codec_driver);
+module_platform_driver(es9023_component_driver);
 
 MODULE_AUTHOR("Clive Messer <clive.messer@digitaldreamtime.co.uk>");
 MODULE_DESCRIPTION("ASoC ESS Sabre ES9023 codec driver");
