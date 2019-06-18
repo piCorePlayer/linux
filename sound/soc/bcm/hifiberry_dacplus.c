@@ -148,7 +148,7 @@ static void snd_rpi_hifiberry_dacplus_set_sclk(struct snd_soc_component *compone
 static int snd_rpi_hifiberry_dacplus_init(struct snd_soc_pcm_runtime *rtd)
 {
 	struct snd_soc_component *component = rtd->codec_dai->component;
-	struct pcm512x_priv *priv = snd_soc_codec_get_drvdata(codec);
+	struct pcm512x_priv *priv = snd_soc_component_get_drvdata(component);
 
 	if (slave)
 		snd_rpi_hifiberry_is_dacpro = false;
@@ -277,7 +277,7 @@ static void snd_rpi_hifiberry_dacplus_shutdown(
 	snd_soc_component_update_bits(component, PCM512x_GPIO_CONTROL_1, 0x08, 0x00);
 
 	if (snd_rpi_hifiberry_is_dacpro) {
-		struct pcm512x_priv *priv = snd_soc_codec_get_drvdata(codec);
+		struct pcm512x_priv *priv = snd_soc_component_get_drvdata(component);
 		/*
 		 * Default sclk to CLK_48EN_RATE, otherwise codec
 		 *  pcm512x_dai_startup_master method could call
