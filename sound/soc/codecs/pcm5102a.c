@@ -29,34 +29,34 @@ static const struct snd_pcm_hw_constraint_list pcm5102a_constraint_rates = {
 static int pcm5102a_dai_startup(struct snd_pcm_substream *substream,
 	struct snd_soc_dai *dai)
 {
-	struct snd_soc_codec *codec = dai->codec;
-	struct pcm5102a_priv *priv = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *component = dai->component;
+	struct pcm5102a_priv *priv = snd_soc_component_get_drvdata(component);
 	int ret;
 
-	dev_dbg(codec->dev, "%s: set rates (8k-384k) constraint\n", __func__);
+	dev_dbg(component->dev, "%s: set rates (8k-384k) constraint\n", __func__);
 
 	ret = snd_pcm_hw_constraint_list(substream->runtime, 0,
 					 SNDRV_PCM_HW_PARAM_RATE,
 					 &pcm5102a_constraint_rates);
 	if (ret != 0) {
-		dev_err(codec->dev, "%s: Failed to set rates constraint: %d\n",
+		dev_err(component->dev, "%s: Failed to set rates constraint: %d\n",
 			__func__, ret);
 		return ret;
 	}
 
 	if (!priv->rates_384k) {
-		dev_info(codec->dev,
+		dev_info(component->dev,
 			 "%s: Limiting sample rate support to 192kHz MAX\n",
 			 __func__);
 
-		dev_dbg(codec->dev, "%s: set minmax (8k/192k) constraint\n",
+		dev_dbg(component->dev, "%s: set minmax (8k/192k) constraint\n",
 			__func__);
 
 		ret = snd_pcm_hw_constraint_minmax(substream->runtime,
 						   SNDRV_PCM_HW_PARAM_RATE,
 						   8000, 192000);
 		if (ret < 0) {
-			dev_err(codec->dev, "%s: Failed to set minmax "
+			dev_err(component->dev, "%s: Failed to set minmax "
 				"constraint: %d\n", __func__, ret);
 			return ret;
 		}
