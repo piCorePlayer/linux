@@ -3037,6 +3037,19 @@ Params: speed                   SPI bus speed (default 4500000)
         dc_pin                  GPIO pin for D/C (default 24)
         reset_pin               GPIO pin for RESET (default 25)
 
+Name:   st7789v-spi
+Info:   Overlay for ST7789V LCD via SPI using tinydrm driver.
+Load:   dtoverlay=st7789v-spi,<param>=<val>
+Params: speed                   SPI bus speed (default 3200000)
+        rotation                Display rotation (0, 90, 180 or 270; default 0)
+        width                   Display width (default 240)
+        height                  Display height (default 240)
+        col_offset              Display column offset (default 0)
+        row_offset              Display row offset (default 0)
+        dc_pin                  GPIO pin for D/C (default 9)
+        reset_pin               GPIO pin for RESET (Default Unused)
+        cs                      SPI chip select 0=CE0,1=CE1 (default 1)
+        backlight               GPIO pin for the backlight (default 13)
 
 Name:   superaudioboard
 Info:   Configures the SuperAudioBoard sound card
