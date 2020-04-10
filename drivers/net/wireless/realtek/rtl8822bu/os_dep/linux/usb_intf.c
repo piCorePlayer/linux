@@ -241,8 +241,13 @@ static struct usb_device_id rtw_usb_id_tbl[] = {
 	{USB_DEVICE(0x0B05, 0x1812), .driver_info = RTL8812}, /* ASUS - Edimax */
 	{USB_DEVICE(0x7392, 0xB822), .driver_info = RTL8822B}, /* Edimax - EW-7822ULC */
 	{USB_DEVICE(0x0b05, 0x184c), .driver_info = RTL8822B}, /* ASUS USB AC53 */
+	{USB_DEVICE(0x0b05, 0x1841), .driver_info = RTL8822B}, /* ASUS USB AC57 */
 	{USB_DEVICE(0x7392, 0xC822), .driver_info = RTL8822B}, /* Edimax - EW-7822UTC */
 	{USB_DEVICE(0x2001, 0x331c), .driver_info = RTL8822B}, /* D-Link - DWA-182 Rev D */
+	{USB_DEVICE(0x2357, 0x0115), .driver_info = RTL8822B}, /* Archer USB T4Uv3 */
+    {USB_DEVICE(0x2357, 0x012d), .driver_info = RTL8822B}, /* Archer USB T3U */
+	{USB_DEVICE(0x0E66, 0x0025), .driver_info = RTL8822B}, /* Hawking Tech HW12ACU */
+	{USB_DEVICE(0x20F4, 0x808A), .driver_info = RTL8822B}, /* Trendnet TEW-808UBM */
 	/*=== Customer ID ===*/
 	{USB_DEVICE_AND_INTERFACE_INFO(0x13b1, 0x0043, 0xff, 0xff, 0xff), .driver_info = RTL8822B}, /* Alpha - Alpha*/
 #endif /* CONFIG_RTL8822B */

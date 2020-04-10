@@ -37,6 +37,9 @@
 
 #include <net/rtnetlink.h>
 
+#define KERNEL_HAS_CFG80211_WIPHY_VENDOR_COMMAND_POLICY \
+    (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 3, 0))
+
 #ifdef DBG_MEM_ALLOC
 extern bool match_mstat_sniff_rules(const enum mstat_f flags, const size_t size);
 struct sk_buff *dbg_rtw_cfg80211_vendor_event_alloc(struct wiphy *wiphy, struct wireless_dev *wdev, int len, int event_id, gfp_t gfp
@@ -1399,7 +1402,10 @@ static const struct wiphy_vendor_command rtw_vendor_cmds[] = {
 			.subcmd = LSTATS_SUBCMD_GET_INFO
 		},
 		.flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
-		.doit = rtw_cfgvendor_lstats_get_info
+		.doit = rtw_cfgvendor_lstats_get_info,
+#if KERNEL_HAS_CFG80211_WIPHY_VENDOR_COMMAND_POLICY
+		.policy = VENDOR_CMD_RAW_DATA,
+#endif /* KERNEL_HAS_CFG80211_WIPHY_VENDOR_COMMAND_POLICY */
 	},
 	{
 		{
@@ -1407,7 +1413,10 @@ static const struct wiphy_vendor_command rtw_vendor_cmds[] = {
 			.subcmd = LSTATS_SUBCMD_SET_INFO
 		},
 		.flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
-		.doit = rtw_cfgvendor_lstats_set_info
+		.doit = rtw_cfgvendor_lstats_set_info,
+#if KERNEL_HAS_CFG80211_WIPHY_VENDOR_COMMAND_POLICY
+		.policy = VENDOR_CMD_RAW_DATA,
+#endif /* KERNEL_HAS_CFG80211_WIPHY_VENDOR_COMMAND_POLICY */
 	},
 	{
 		{
@@ -1415,7 +1424,10 @@ static const struct wiphy_vendor_command rtw_vendor_cmds[] = {
 			.subcmd = LSTATS_SUBCMD_CLEAR_INFO
 		},
 		.flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
-		.doit = rtw_cfgvendor_lstats_clear_info
+		.doit = rtw_cfgvendor_lstats_clear_info,
+#if KERNEL_HAS_CFG80211_WIPHY_VENDOR_COMMAND_POLICY
+		.policy = VENDOR_CMD_RAW_DATA,
+#endif /* KERNEL_HAS_CFG80211_WIPHY_VENDOR_COMMAND_POLICY */
 	},
 #endif /* CONFIG_RTW_CFGVEDNOR_LLSTATS */
 	{
@@ -1424,7 +1436,10 @@ static const struct wiphy_vendor_command rtw_vendor_cmds[] = {
 			.subcmd = WIFI_SUBCMD_GET_FEATURE_SET
 		},
 		.flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
-		.doit = rtw_cfgvendor_get_feature_set
+		.doit = rtw_cfgvendor_get_feature_set,
+#if KERNEL_HAS_CFG80211_WIPHY_VENDOR_COMMAND_POLICY
+		.policy = VENDOR_CMD_RAW_DATA,
+#endif /* KERNEL_HAS_CFG80211_WIPHY_VENDOR_COMMAND_POLICY */
 	},
 	{
 		{
@@ -1432,7 +1447,10 @@ static const struct wiphy_vendor_command rtw_vendor_cmds[] = {
 			.subcmd = WIFI_SUBCMD_GET_FEATURE_SET_MATRIX
 		},
 		.flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
-		.doit = rtw_cfgvendor_get_feature_set_matrix
+		.doit = rtw_cfgvendor_get_feature_set_matrix,
+#if KERNEL_HAS_CFG80211_WIPHY_VENDOR_COMMAND_POLICY
+		.policy = VENDOR_CMD_RAW_DATA,
+#endif /* KERNEL_HAS_CFG80211_WIPHY_VENDOR_COMMAND_POLICY */
 	}
 };
 
