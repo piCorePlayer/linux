@@ -166,7 +166,7 @@ static struct usb_device_id rtw_usb_id_tbl[] = {
 	{USB_DEVICE(0x07B8, 0x8812), .driver_info = RTL8812}, /* Abocom - Abocom */
 	{USB_DEVICE(0x2001, 0x3315), .driver_info = RTL8812}, /* D-Link - Cameo */
 	{USB_DEVICE(0x2001, 0x3316), .driver_info = RTL8812}, /* D-Link - Cameo */
-	{USB_DEVICE(0x20F4, 0x805B), .driver_info = RTL8812}, /* TRENDnet - Cameo */
+	{USB_DEVICE(0x20F4, 0x805B), .driver_info = RTL8812}, /* TRENDnet */
 	{USB_DEVICE(0x13b1, 0x003F), .driver_info = RTL8812}, /* Linksys - WUSB6300 */
 	{USB_DEVICE(0x2357, 0x0101), .driver_info = RTL8812}, /* TP-Link - Archer T4U */
 	{USB_DEVICE(0x2357, 0x0103), .driver_info = RTL8812}, /* TP-Link - T4UH */
@@ -174,9 +174,10 @@ static struct usb_device_id rtw_usb_id_tbl[] = {
 	{USB_DEVICE(0x2357, 0x010E), .driver_info = RTL8812}, /* TP-Link - Archer T4UH AC1300 */
 	{USB_DEVICE(0x2357, 0x010F), .driver_info = RTL8812}, /* TP-Link - T4UHP */
 	{USB_DEVICE(0x2357, 0x0122), .driver_info = RTL8812}, /* TP-Link - T4UHP (other) */
-	{USB_DEVICE(0x20f4, 0x805B), .driver_info = RTL8812}, /* TRENDnet - */
-	{USB_DEVICE(0x0411, 0x025d), .driver_info = RTL8812}, /* Buffalo - WI-U3-866D */
+	{USB_DEVICE(0x0411, 0x025D), .driver_info = RTL8812}, /* Buffalo - WI-U3-866D */
 	{USB_DEVICE(0x050D, 0x1109), .driver_info = RTL8812}, /* Belkin F9L1109 - SerComm */
+	{USB_DEVICE(0x0BDA, 0x8812), .driver_info = RTL8812}, /* Netis WF2190 */
+	{USB_DEVICE(0x2604, 0x0012), .driver_info = RTL8812}, /* Tenda - U12 */
 	/*=== Patched ID ===*/
 	{USB_DEVICE(0x148F, 0x9097), .driver_info = RTL8812}, /* Amped Wireless ACA1 */
 #endif
@@ -201,9 +202,16 @@ static struct usb_device_id rtw_usb_id_tbl[] = {
 	{USB_DEVICE(0x0411, 0x0242), .driver_info = RTL8821}, /* ELECOM - WDC-433DU2H */
 	{USB_DEVICE(0x2019, 0xAB32), .driver_info = RTL8821}, /* Planex - GW-450S */
 	{USB_DEVICE(0x0846, 0x9052), .driver_info = RTL8821}, /* Netgear - A6100 */
+	{USB_DEVICE(0x0411, 0x029B), .driver_info = RTL8821}, /* Buffalo - WI-U2-433DHP */
+	{USB_DEVICE(0x056E, 0x4007), .driver_info = RTL8821}, /* Elecom - WDC-433DU2HBK */
+	{USB_DEVICE(0x0BDA, 0xA811), .driver_info = RTL8821}, /* GMYLE - AC450 */
+	{USB_DEVICE(0x3823, 0x6249), .driver_info = RTL8821}, /* Obihai - OBiWiFi */
+	{USB_DEVICE(0x2357, 0x011E), .driver_info = RTL8821}, /* TP Link - T2U Nano */
+	{USB_DEVICE(0x2357, 0x0122), .driver_info = RTL8821}, /* TP Link - T2U Nano */
+	{USB_DEVICE(0x2357, 0x0120), .driver_info = RTL8821}, /* TP Link - T2U Plus */
+	{USB_DEVICE(0x2357, 0x011F), .driver_info = RTL8821}, /* TP-Link - Archer AC600 T2U Nano */
 	/*=== Patched ID ===*/
-	{USB_DEVICE(0x056e, 0x4007),.driver_info = RTL8821}, /* Elecom - WDC-433DU2HBK */
-	{USB_DEVICE(0x0BDA, 0xA811),.driver_info = RTL8821}, /* Comfast - CF-915AC */	
+	{USB_DEVICE(0x0BDA, 0xA811), .driver_info = RTL8821}, /* Comfast - CF-915AC */
 #endif
 
 #ifdef CONFIG_RTL8192E
