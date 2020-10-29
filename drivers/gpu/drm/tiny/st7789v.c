@@ -50,8 +50,8 @@ static void st7789v_fb_dirty(struct drm_framebuffer *fb, struct drm_rect *rect)
 	struct mipi_dbi_dev *dbidev = drm_to_mipi_dbi_dev(fb->dev);
 	struct mipi_dbi *dbi = &dbidev->dbi;
 	bool swap = dbi->swap_bytes;
-	unsigned int height = drm_rect_height(rect);
-	unsigned int width = drm_rect_width(rect);
+	unsigned int height = rect->y2 - rect->y1;
+	unsigned int width = rect->x2 - rect->x1;
 	int idx, ret = 0;
 	u16 x1, x2, y1, y2;
 	bool full;
@@ -92,7 +92,7 @@ static void st7789v_fb_dirty(struct drm_framebuffer *fb, struct drm_rect *rect)
 			 (y2 >> 8) & 0xFF, y2 & 0xFF);
 
 	ret = mipi_dbi_command_buf(dbi, MIPI_DCS_WRITE_MEMORY_START, tr,
-				(rect->x2 - rect->x1) * (rect->y2 - rect->y1) * 2);
+				( x2 - x1 ) * ( y2 - y1 ) * 2);
 err_msg:
 	if (ret)
 		dev_err_once(fb->dev->dev, "Failed to update display %d\n", ret);
@@ -234,9 +234,9 @@ static struct drm_driver st7789v_driver = {
 	.debugfs_init		= mipi_dbi_debugfs_init,
 	.name			= "st7789v",
 	.desc			= "ST7789V Adafruit",
-	.date			= "20190914",
+	.date			= "20201029",
 	.major			= 1,
-	.minor			= 0,
+	.minor			= 7,
 };
 
 static const struct of_device_id st7789v_of_match[] = {
@@ -330,8 +330,6 @@ int st7789v_init(struct device *dev, struct mipi_dbi *mipi,
 }
 */
 
-
-
 static int st7789v_probe(struct spi_device *spi)
 {
 	struct device *dev = &spi->dev;
@@ -365,7 +363,7 @@ static int st7789v_probe(struct spi_device *spi)
 		return PTR_ERR(dbi->reset);
 	}
 
-	dc = devm_gpiod_get_optional(dev, "dc", GPIOD_OUT_LOW);
+	dc = devm_gpiod_get(dev, "dc", GPIOD_OUT_LOW);
 	if (IS_ERR(dc)) {
 		DRM_DEV_ERROR(dev, "Failed to get gpio 'dc'\n");
 		return PTR_ERR(dc);
