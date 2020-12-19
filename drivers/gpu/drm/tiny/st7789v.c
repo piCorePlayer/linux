@@ -12,12 +12,11 @@
 
 #include <linux/backlight.h>
 #include <linux/delay.h>
-#include <linux/dma-buf.h>
 #include <linux/gpio/consumer.h>
 #include <linux/module.h>
 #include <linux/property.h>
+#include <linux/regulator/consumer.h>
 #include <linux/spi/spi.h>
-#include <video/mipi_display.h>
 
 #include <drm/drm_atomic_helper.h>
 #include <drm/drm_damage_helper.h>
@@ -30,6 +29,8 @@
 #include <drm/drm_mipi_dbi.h>
 #include <drm/drm_rect.h>
 #include <drm/drm_vblank.h>
+#include <drm/drm_modeset_helper.h>
+#include <video/mipi_display.h>
 
 #define ST77XX_MADCTL_MY  0x80
 #define ST77XX_MADCTL_MX  0x40
@@ -48,10 +49,10 @@ static void st7789v_fb_dirty(struct drm_framebuffer *fb, struct drm_rect *rect)
 {
 	struct drm_gem_cma_object *cma_obj = drm_fb_cma_get_gem_obj(fb, 0);
 	struct mipi_dbi_dev *dbidev = drm_to_mipi_dbi_dev(fb->dev);
-	struct mipi_dbi *dbi = &dbidev->dbi;
-	bool swap = dbi->swap_bytes;
 	unsigned int height = rect->y2 - rect->y1;
 	unsigned int width = rect->x2 - rect->x1;
+	struct mipi_dbi *dbi = &dbidev->dbi;
+	bool swap = dbi->swap_bytes;
 	int idx, ret = 0;
 	u16 x1, x2, y1, y2;
 	bool full;
@@ -82,7 +83,7 @@ static void st7789v_fb_dirty(struct drm_framebuffer *fb, struct drm_rect *rect)
 	y1 = rect->y1 + y_offset;
 	y2 = rect->y2 - 1 + y_offset;
 
-	//printk(KERN_INFO "setaddrwin %d %d %d %d\n", x1, y1, x2, y2);
+	//printk(KERN_INFO "setaddrwin (%d, %d) -> (%d, %d) offsets: %d & %d \n", x1, y1, x2, y2, x_offset, y_offset);
 
 	mipi_dbi_command(dbi, MIPI_DCS_SET_COLUMN_ADDRESS,
 			 (x1 >> 8) & 0xFF, x1 & 0xFF,
@@ -92,7 +93,7 @@ static void st7789v_fb_dirty(struct drm_framebuffer *fb, struct drm_rect *rect)
 			 (y2 >> 8) & 0xFF, y2 & 0xFF);
 
 	ret = mipi_dbi_command_buf(dbi, MIPI_DCS_WRITE_MEMORY_START, tr,
-				( x2 - x1 ) * ( y2 - y1 ) * 2);
+				width*height * 2);
 err_msg:
 	if (ret)
 		dev_err_once(fb->dev->dev, "Failed to update display %d\n", ret);
@@ -119,21 +120,21 @@ static void st7789v_pipe_update(struct drm_simple_display_pipe *pipe,
 	}
 }
 
+static struct drm_display_mode st7789v_mode = {
+  DRM_SIMPLE_MODE(240, 320, 58, 43), // width, height, mm_w, mm_h
+};
+
+DEFINE_DRM_GEM_CMA_FOPS(st7789v_fops);
+
 static void st7789v_pipe_enable(struct drm_simple_display_pipe *pipe,
 			    struct drm_crtc_state *crtc_state,
 			    struct drm_plane_state *plane_state)
 {
 	struct mipi_dbi_dev *dbidev = drm_to_mipi_dbi_dev(pipe->crtc.dev);
-	struct drm_framebuffer *fb = plane_state->fb;
-	struct device *dev = pipe->crtc.dev->dev;
 	struct mipi_dbi *dbi = &dbidev->dbi;
-	struct drm_rect rect = {
-		.x1 = 0,
-		.x2 = fb->width,
-		.y1 = 0,
-		.y2 = fb->height,
-	};
 	u8 addr_mode;
+	u16 width = st7789v_mode.htotal;
+	u16 height = st7789v_mode.vtotal;
 	int ret, idx;
 	
 	if (!drm_dev_enter(pipe->crtc.dev, &idx))
@@ -143,15 +144,11 @@ static void st7789v_pipe_enable(struct drm_simple_display_pipe *pipe,
 
 	ret = mipi_dbi_poweron_conditional_reset(dbidev);
 	if (ret < 0)
-		return;
+		goto out_exit;
 	if (ret == 1)
 		goto out_enable;
 
-	ret = mipi_dbi_command(dbi, MIPI_DCS_SET_DISPLAY_OFF);
-	if (ret) {
-		DRM_DEV_ERROR(dev, "Error sending command %d\n", ret);
-		goto out_exit;
-	}
+	mipi_dbi_command(dbi, MIPI_DCS_SET_DISPLAY_OFF);
 		
 	mipi_dbi_command(dbi, MIPI_DCS_SOFT_RESET);
 	msleep(150);
@@ -188,14 +185,14 @@ out_enable:
 		break;
 	case 180:
 		addr_mode = ST77XX_MADCTL_MX | ST77XX_MADCTL_MY;
-		x_offset = col_offset+col_hack_fix_offset; 
-		// hack tweak to account for extra pixel width to make even
-		y_offset = row_offset; 
+        x_offset = (240 - width) - col_offset + col_hack_fix_offset;
+        // hack tweak to account for extra pixel width to make even
+        y_offset = (320 - height) - row_offset;
 		break;
 	case 270:
 		addr_mode = ST77XX_MADCTL_MV | ST77XX_MADCTL_MY;
-		x_offset = row_offset;
-		y_offset = col_offset;
+		x_offset = (320 - height) - row_offset;
+		y_offset = (240 - width) - col_offset;
 		break;
 	}
 	mipi_dbi_command(dbi, MIPI_DCS_SET_ADDRESS_MODE, addr_mode);
@@ -206,9 +203,6 @@ out_enable:
 
 	backlight_enable(dbidev->backlight);
 	
-	dbidev->enabled = true;
-	st7789v_fb_dirty(fb, &rect);
-
 out_exit:	
 	drm_dev_exit(idx);
 }
@@ -220,11 +214,6 @@ static const struct drm_simple_display_pipe_funcs st7789v_pipe_funcs = {
 	.prepare_fb = drm_gem_fb_simple_display_pipe_prepare_fb,
 };
 
-static struct drm_display_mode st7789v_mode = {
-  DRM_SIMPLE_MODE(240, 320, 25, 15), // width, height, mm_w, mm_h
-};
-
-DEFINE_DRM_GEM_CMA_FOPS(st7789v_fops);
 
 static struct drm_driver st7789v_driver = {
 	.driver_features	= DRIVER_GEM | DRIVER_MODESET | DRIVER_ATOMIC,
@@ -234,9 +223,9 @@ static struct drm_driver st7789v_driver = {
 	.debugfs_init		= mipi_dbi_debugfs_init,
 	.name			= "st7789v",
 	.desc			= "ST7789V Adafruit",
-	.date			= "20201029",
+	.date			= "20201218",
 	.major			= 1,
-	.minor			= 7,
+	.minor			= 8,
 };
 
 static const struct of_device_id st7789v_of_match[] = {
@@ -251,84 +240,10 @@ static const struct spi_device_id st7789v_id[] = {
 };
 MODULE_DEVICE_TABLE(spi, st7789v_id);
 
-/*
-static const struct drm_framebuffer_funcs st7789v_fb_funcs = {
-	.destroy	= drm_gem_fb_destroy,
-	.create_handle	= drm_gem_fb_create_handle,
-	.dirty		= tinydrm_fb_dirty,
-};
-*/
-
 static const uint32_t st7789v_formats[] = {
 	DRM_FORMAT_RGB565,
 	DRM_FORMAT_XRGB8888,
 };
-
-/**
- * st7789v - MIPI DBI initialization
- * @dev: Parent device
- * @mipi: &mipi_dbi structure to initialize
- * @pipe_funcs: Display pipe functions
- * @driver: DRM driver
- * @mode: Display mode
- * @rotation: Initial rotation in degrees Counter Clock Wise
- *
- * This function initializes a &mipi_dbi structure and it's underlying
- * @tinydrm_device. It also sets up the display pipeline.
- *
- * Supported formats: Native RGB565 and emulated XRGB8888.
- *
- * Objects created by this function will be automatically freed on driver
- * detach (devres).
- *
- * Returns:
- * Zero on success, negative error code on failure.
- */
-/*
-int st7789v_init(struct device *dev, struct mipi_dbi *mipi,
-		  const struct drm_simple_display_pipe_funcs *pipe_funcs,
-		  struct drm_driver *driver,
-		  const struct drm_display_mode *mode, unsigned int rotation)
-{
-	size_t bufsize = mode->vdisplay * mode->hdisplay * sizeof(u16);
-	struct tinydrm_device *tdev = &mipi->tinydrm;
-	int ret;
-
-	if (!mipi->command)
-		return -EINVAL;
-
-	mutex_init(&mipi->cmdlock);
-
-	mipi->tx_buf = devm_kmalloc(dev, bufsize, GFP_KERNEL);
-	if (!mipi->tx_buf)
-		return -ENOMEM;
-
-	ret = devm_tinydrm_init(dev, tdev, &st7789v_fb_funcs, driver);
-	if (ret)
-		return ret;
-
-	tdev->fb_dirty = st7789v_fb_dirty;
-
-	// TODO: Maybe add DRM_MODE_CONNECTOR_SPI 
-	ret = tinydrm_display_pipe_init(tdev, pipe_funcs,
-					DRM_MODE_CONNECTOR_VIRTUAL,
-					st7789v_formats,
-					ARRAY_SIZE(st7789v_formats), mode,
-					rotation);
-	if (ret)
-		return ret;
-
-	tdev->drm->mode_config.preferred_depth = 16;
-	mipi->rotation = rotation;
-
-	drm_mode_config_reset(tdev->drm);
-
-	DRM_DEBUG_KMS("preferred_depth=%u, rotation = %u\n",
-		      tdev->drm->mode_config.preferred_depth, rotation);
-
-	return 0;
-}
-*/
 
 static int st7789v_probe(struct spi_device *spi)
 {
@@ -363,11 +278,15 @@ static int st7789v_probe(struct spi_device *spi)
 		return PTR_ERR(dbi->reset);
 	}
 
-	dc = devm_gpiod_get(dev, "dc", GPIOD_OUT_LOW);
+	dc = devm_gpiod_get_optional(dev, "dc", GPIOD_OUT_LOW);
 	if (IS_ERR(dc)) {
 		DRM_DEV_ERROR(dev, "Failed to get gpio 'dc'\n");
 		return PTR_ERR(dc);
 	}
+
+	dbidev->regulator = devm_regulator_get(dev, "power");
+	if (IS_ERR(dbidev->regulator))
+		return PTR_ERR(dbidev->regulator);
 
 	dbidev->backlight = devm_of_find_backlight(dev);
 	if (IS_ERR(dbidev->backlight))
@@ -379,7 +298,7 @@ static int st7789v_probe(struct spi_device *spi)
 	device_property_read_u32(dev, "width", &width);
 	if (width % 2) {
 	  width +=1;	  // odd width will cause a kernel panic
-	  col_hack_fix_offset = 1;
+	  col_hack_fix_offset = 3;
 	} else {
 	  col_hack_fix_offset = 0;
 	}
@@ -405,7 +324,6 @@ static int st7789v_probe(struct spi_device *spi)
 	//printk(KERN_INFO "Row offset %d\n", row_offset);
 
 	ret = mipi_dbi_spi_init(spi, dbi, dc);
-	spi->mode = SPI_MODE_3;
 	if (ret)
 		return ret;
 
@@ -445,6 +363,23 @@ static void st7789v_shutdown(struct spi_device *spi)
 	drm_atomic_helper_shutdown(spi_get_drvdata(spi));
 }
 
+static int __maybe_unused st7789v_pm_suspend(struct device *dev)
+{
+	return drm_mode_config_helper_suspend(dev_get_drvdata(dev));
+}
+
+static int __maybe_unused st7789v_pm_resume(struct device *dev)
+{
+	drm_mode_config_helper_resume(dev_get_drvdata(dev));
+
+	return 0;
+}
+
+static const struct dev_pm_ops st7789v_pm_ops = {
+	SET_SYSTEM_SLEEP_PM_OPS(st7789v_pm_suspend, st7789v_pm_resume)
+};
+
+
 static struct spi_driver st7789v_spi_driver = {
 	.driver = {
 		.name = "st7789v",
@@ -459,5 +394,5 @@ static struct spi_driver st7789v_spi_driver = {
 module_spi_driver(st7789v_spi_driver);
 
 MODULE_DESCRIPTION("Sitronix ST7789V Flexible DRM driver");
-MODULE_AUTHOR("Limor Fried");
+MODULE_AUTHOR("Noralf Trønnes + Limor Fried");
 MODULE_LICENSE("GPL");
