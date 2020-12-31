@@ -1151,9 +1151,10 @@ Params: 24db_digital_gain       Allow gain to be applied via the PCM512x codec
 
 
 Name:   hifiberry-dac
-Info:   Configures the HifiBerry DAC audio cards
-Load:   dtoverlay=hifiberry-dac
-Params: <None>
+Info:   Configures the HifiBerry DAC audio card
+Load:   dtoverlay=hifiberry-dac,<param>
+Params: 384k                    Instructs the pcm5102a codec driver to support
+                                352k8 and 384k sample rates.
 
 
 Name:   hifiberry-dacplus
