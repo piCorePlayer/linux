@@ -26,6 +26,7 @@
 #include <drm/drm_fourcc.h>
 #include <drm/drm_gem_cma_helper.h>
 #include <drm/drm_gem_framebuffer_helper.h>
+#include <drm/drm_managed.h>
 #include <drm/drm_mipi_dbi.h>
 #include <drm/drm_rect.h>
 #include <drm/drm_vblank.h>
@@ -58,14 +59,14 @@ static void st7789v_fb_dirty(struct drm_framebuffer *fb, struct drm_rect *rect)
 	bool full;
 	void *tr;
 
-	if (!dbidev->enabled)
+	if (WARN_ON(!fb))
 		return;
 
 	if (!drm_dev_enter(fb->dev, &idx))
 		return;
 
 	full = width == fb->width && height == fb->height;
-	
+
 	DRM_DEBUG_KMS("Flushing [FB:%d] " DRM_RECT_FMT "\n", fb->base.id, DRM_RECT_ARG(rect));
 
 	if (!dbi->dc || !full || swap ||
@@ -99,7 +100,7 @@ err_msg:
 		dev_err_once(fb->dev->dev, "Failed to update display %d\n", ret);
 
 	drm_dev_exit(idx);
-	
+
 }
 
 static void st7789v_pipe_update(struct drm_simple_display_pipe *pipe,
@@ -136,7 +137,7 @@ static void st7789v_pipe_enable(struct drm_simple_display_pipe *pipe,
 	u16 width = st7789v_mode.htotal;
 	u16 height = st7789v_mode.vtotal;
 	int ret, idx;
-	
+
 	if (!drm_dev_enter(pipe->crtc.dev, &idx))
 		return;
 
@@ -149,7 +150,7 @@ static void st7789v_pipe_enable(struct drm_simple_display_pipe *pipe,
 		goto out_enable;
 
 	mipi_dbi_command(dbi, MIPI_DCS_SET_DISPLAY_OFF);
-		
+
 	mipi_dbi_command(dbi, MIPI_DCS_SOFT_RESET);
 	msleep(150);
 	mipi_dbi_command(dbi, MIPI_DCS_EXIT_SLEEP_MODE);
@@ -202,8 +203,8 @@ out_enable:
 	mipi_dbi_enable_flush(dbidev, crtc_state, plane_state);
 
 	backlight_enable(dbidev->backlight);
-	
-out_exit:	
+
+out_exit:
 	drm_dev_exit(idx);
 }
 
@@ -218,8 +219,7 @@ static const struct drm_simple_display_pipe_funcs st7789v_pipe_funcs = {
 static struct drm_driver st7789v_driver = {
 	.driver_features	= DRIVER_GEM | DRIVER_MODESET | DRIVER_ATOMIC,
 	.fops			= &st7789v_fops,
-	.release		= mipi_dbi_release, 
-	DRM_GEM_CMA_VMAP_DRIVER_OPS,
+	DRM_GEM_CMA_DRIVER_OPS_VMAP,
 	.debugfs_init		= mipi_dbi_debugfs_init,
 	.name			= "st7789v",
 	.desc			= "ST7789V Adafruit",
@@ -257,21 +257,14 @@ static int st7789v_probe(struct spi_device *spi)
 	u32 height = 320;
 	int ret;
 
-	dbidev = kzalloc( sizeof(*dbidev), GFP_KERNEL);
-	if (!dbidev)
-		return -ENOMEM;
+	dbidev = devm_drm_dev_alloc(dev, &st7789v_driver,
+			    struct mipi_dbi_dev, drm);
+	if (IS_ERR(dbidev))
+		return PTR_ERR(dbidev);
 
 	dbi = &dbidev->dbi;
 	drm = &dbidev->drm;
-	
-	ret = devm_drm_dev_init(dev, drm, &st7789v_driver);
-	if (ret) {
-		kfree(dbidev);
-		return ret;
-	}
-	
-	drm_mode_config_init(drm);
-	
+
 	dbi->reset = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_HIGH);
 	if (IS_ERR(dbi->reset)) {
 		DRM_DEV_ERROR(dev, "Failed to get gpio 'reset'\n");
@@ -312,9 +305,9 @@ static int st7789v_probe(struct spi_device *spi)
 	  height = 320; // default to full framebuff;
 	}
 
-	st7789v_mode.hdisplay = st7789v_mode.hsync_start = 
+	st7789v_mode.hdisplay = st7789v_mode.hsync_start =
 	  st7789v_mode.hsync_end = st7789v_mode.htotal = width;
-	st7789v_mode.vdisplay = st7789v_mode.vsync_start = 
+	st7789v_mode.vdisplay = st7789v_mode.vsync_start =
 	  st7789v_mode.vsync_end = st7789v_mode.vtotal = height;
 
 	device_property_read_u32(dev, "col_offset", &col_offset);
@@ -343,7 +336,7 @@ static int st7789v_probe(struct spi_device *spi)
 	spi_set_drvdata(spi, drm);
 
 	drm_fbdev_generic_setup(drm, 0);
-	
+
 	return 0;
 }
 
