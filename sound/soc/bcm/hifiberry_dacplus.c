@@ -148,7 +148,7 @@ static void snd_rpi_hifiberry_dacplus_set_sclk(struct snd_soc_component *compone
 static int snd_rpi_hifiberry_dacplus_init(struct snd_soc_pcm_runtime *rtd)
 {
 	struct snd_soc_component *component = asoc_rtd_to_codec(rtd, 0)->component;
-	struct pcm512x_priv *priv = snd_soc_codec_get_drvdata(codec);
+	struct pcm512x_priv *priv = snd_soc_component_get_drvdata(component);
 
 	if (slave)
 		snd_rpi_hifiberry_is_dacpro = false;
