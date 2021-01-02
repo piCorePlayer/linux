@@ -1249,7 +1249,7 @@ static void ax_drop_queued_tx(struct ax_device *dev)
 	}
 }
 
-static void ax88179_tx_timeout(struct net_device *netdev)
+static void ax88179_tx_timeout(struct net_device *netdev, unsigned int txqueue)
 {
 	struct ax_device *dev = netdev_priv(netdev);
 
