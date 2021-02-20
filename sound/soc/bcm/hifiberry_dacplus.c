@@ -362,7 +362,7 @@ static void snd_rpi_hifiberry_dacplus_shutdown(
 		gpiod_set_value_cansleep(snd_mute_gpio, 1);
 
 	if (snd_rpi_hifiberry_is_dacpro) {
-		struct pcm512x_priv *priv = snd_soc_codec_get_drvdata(codec);
+		struct pcm512x_priv *priv = snd_soc_component_get_drvdata(component);
 		/*
 		 * Default sclk to CLK_48EN_RATE, otherwise codec
 		 *  pcm512x_dai_startup_master method could call
