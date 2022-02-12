@@ -1,0 +1,105 @@
+/*
+ * Device Tree overlay for Sitronix st7789v displays with TINY DRM driver
+ *     -Including the Pimoroni Pirate Audio Hat
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2835";
+
+	fragment@0 {
+		target = <&spi0>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+	fragment@1 {
+		target = <&spidev0>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+
+	fragment@2 {
+		target = <&spidev1>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+
+	fragment@3 {
+		target = <&spi0_pins>;
+		__overlay__ {
+			/* Removing bcm9 MISO, as the st7789v doesn't use it, and at least the
+				Pimoroni Pirate Audio Hat uses this pin for the DC signal. */
+			brcm,pins = <0x0a 0x0b>; 
+		};
+	};
+
+	fragment@4 {
+		target = <&gpio>;
+		__overlay__ {
+			pitft_pins: pitft_pins {
+				brcm,pins = <9>; /* dc pin */
+				brcm,function = <1>; /* out */
+			};
+			backlight_pins: backlight_pins {
+				brcm,pins = <13>;
+				brcm,function = <1>; /* out */
+			};
+		};
+	};
+
+	fragment@5 {
+		target = <&spi0>;
+		__overlay__ {
+			/* needed to avoid dtc warning */
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			pitft: pitft@1{
+				compatible = "sitronix,st7789v";
+				reg = <1>;  /* Chip select 1 */
+
+				spi-max-frequency = <32000000>;
+				rotation = <0>;
+				width = <240>;
+				height = <240>;
+				col_offset = <0>;
+				row_offset = <0>;
+				dc-gpios = <&gpio 9 0>;
+				reset-gpios;
+				backlight = <&backlight>;
+			};
+		};
+	};
+
+	fragment@6 {
+		target-path = "/soc";
+		__overlay__ {
+			backlight: backlight {
+				compatible = "gpio-backlight";
+				gpios = <&gpio 13 0>;
+			};
+		};
+	};
+
+	__overrides__ {
+		speed =       <&pitft>,"spi-max-frequency:0";
+		rotation =    <&pitft>,"rotation:0";
+		width =       <&pitft>,"width:0";
+		height =      <&pitft>,"height:0";
+		col_offset =  <&pitft>,"col_offset:0";
+		row_offset =  <&pitft>,"row_offset:0";
+		dc_pin =      <&pitft>,"dc-gpios:4",
+		              <&pitft_pins>,"brcm,pins:4";
+		reset_pin =   <&pitft>,"reset-gpios:4",
+		              <&pitft_pins>,"brcm,pins:4";
+		cs =          <&pitft>,"reg:0";  /* 0=CE0, 1=CE1 */
+		backlight =   <&backlight>,"gpios:4",
+		              <&backlight_pins>,"brcm,pins:4";
+	};
+};
