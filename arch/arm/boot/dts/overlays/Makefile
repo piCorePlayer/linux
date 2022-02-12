@@ -303,6 +303,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
 	ssd1327-spi.dtbo \
 	ssd1331-spi.dtbo \
 	ssd1351-spi.dtbo \
+	st7789v-spi.dtbo \
 	sunfounder-pipower3.dtbo \
 	sunfounder-pironman5.dtbo \
 	superaudioboard.dtbo \
