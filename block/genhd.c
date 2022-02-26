@@ -88,8 +88,11 @@ bool set_capacity_and_notify(struct gendisk *disk, sector_t size)
 	    (disk->flags & GENHD_FL_HIDDEN))
 		return false;
 
-	pr_info("%s: detected capacity change from %lld to %lld\n",
-		disk->disk_name, capacity, size);
+	//Prevent loop device creation noise in dmesg.
+	if (disk->major != 7 ||
+		 capacity != 0)
+		pr_info("%s: detected capacity change from %lld to %lld\n",
+			disk->disk_name, capacity, size);
 
 	/*
 	 * Historically we did not send a uevent for changes to/from an empty
