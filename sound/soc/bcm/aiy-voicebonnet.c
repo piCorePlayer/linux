@@ -22,6 +22,7 @@
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
+#include <sound/soc-card.h>
 #include "../codecs/rt5645.h"
 
 #define PLATFORM_CLOCK 24576000
@@ -36,7 +37,6 @@ static struct snd_soc_jack_pin headset_jack_pin = {
 
 static int snd_rpi_aiy_voicebonnet_init(struct snd_soc_pcm_runtime *rtd) {
 	int ret;
-	struct snd_soc_card *card = rtd->card;
 	struct snd_soc_component *component = asoc_rtd_to_codec(rtd, 0)->component;
 	struct snd_soc_dai *codec_dai = asoc_rtd_to_codec(rtd, 0);
 
@@ -54,7 +54,7 @@ static int snd_rpi_aiy_voicebonnet_init(struct snd_soc_pcm_runtime *rtd) {
 		return ret;
 	}
 
-	ret = snd_soc_card_jack_new(rtd->card, "Headphone Jack",
+	ret = snd_soc_card_jack_new_pins(rtd->card, "Headphone Jack",
 				    SND_JACK_HEADPHONE,
 				    &headset_jack, &headset_jack_pin, 1);
 	if (ret < 0) {
