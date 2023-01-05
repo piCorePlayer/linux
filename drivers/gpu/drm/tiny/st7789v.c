@@ -17,21 +17,23 @@
 #include <linux/property.h>
 #include <linux/regulator/consumer.h>
 #include <linux/spi/spi.h>
+#include <video/mipi_display.h>
 
 #include <drm/drm_atomic_helper.h>
 #include <drm/drm_damage_helper.h>
 #include <drm/drm_drv.h>
-#include <drm/drm_fb_cma_helper.h>
+#include <drm/drm_fb_dma_helper.h>
 #include <drm/drm_fb_helper.h>
 #include <drm/drm_fourcc.h>
-#include <drm/drm_gem_cma_helper.h>
+#include <drm/drm_framebuffer.h>
+#include <drm/drm_gem_atomic_helper.h>
+#include <drm/drm_gem_dma_helper.h>
 #include <drm/drm_gem_framebuffer_helper.h>
 #include <drm/drm_managed.h>
 #include <drm/drm_mipi_dbi.h>
 #include <drm/drm_rect.h>
 #include <drm/drm_vblank.h>
 #include <drm/drm_modeset_helper.h>
-#include <video/mipi_display.h>
 
 #define ST77XX_MADCTL_MY  0x80
 #define ST77XX_MADCTL_MX  0x40
@@ -48,7 +50,7 @@ static short y_offset = 0;
 
 static void st7789v_fb_dirty(struct drm_framebuffer *fb, struct drm_rect *rect)
 {
-	struct drm_gem_cma_object *cma_obj = drm_fb_cma_get_gem_obj(fb, 0);
+	struct drm_gem_dma_object *dma_obj = drm_fb_dma_get_gem_obj(fb, 0);
 	struct mipi_dbi_dev *dbidev = drm_to_mipi_dbi_dev(fb->dev);
 	unsigned int height = rect->y2 - rect->y1;
 	unsigned int width = rect->x2 - rect->x1;
@@ -76,7 +78,7 @@ static void st7789v_fb_dirty(struct drm_framebuffer *fb, struct drm_rect *rect)
 		if (ret)
 			goto err_msg;
 	} else {
-		tr = cma_obj->vaddr;
+		tr = dma_obj->vaddr;
 	}
 
 	x1 = rect->x1 + x_offset;
@@ -125,7 +127,7 @@ static struct drm_display_mode st7789v_mode = {
   DRM_SIMPLE_MODE(240, 320, 58, 43), // width, height, mm_w, mm_h
 };
 
-DEFINE_DRM_GEM_CMA_FOPS(st7789v_fops);
+DEFINE_DRM_GEM_DMA_FOPS(st7789v_fops);
 
 static void st7789v_pipe_enable(struct drm_simple_display_pipe *pipe,
 			    struct drm_crtc_state *crtc_state,
@@ -209,6 +211,7 @@ out_exit:
 }
 
 static const struct drm_simple_display_pipe_funcs st7789v_pipe_funcs = {
+	.mode_valid = mipi_dbi_pipe_mode_valid,
 	.enable = st7789v_pipe_enable,
 	.disable = mipi_dbi_pipe_disable,
 	.update = st7789v_pipe_update,
@@ -218,7 +221,7 @@ static const struct drm_simple_display_pipe_funcs st7789v_pipe_funcs = {
 static struct drm_driver st7789v_driver = {
 	.driver_features	= DRIVER_GEM | DRIVER_MODESET | DRIVER_ATOMIC,
 	.fops			= &st7789v_fops,
-	DRM_GEM_CMA_DRIVER_OPS_VMAP,
+	DRM_GEM_DMA_DRIVER_OPS_VMAP,
 	.debugfs_init		= mipi_dbi_debugfs_init,
 	.name			= "st7789v",
 	.desc			= "ST7789V Adafruit",
@@ -331,7 +334,7 @@ static int st7789v_probe(struct spi_device *spi)
 	ret = drm_dev_register(drm, 0);
 	if (ret)
 		return ret;
-	
+
 	spi_set_drvdata(spi, drm);
 
 	drm_fbdev_generic_setup(drm, 0);
@@ -339,14 +342,14 @@ static int st7789v_probe(struct spi_device *spi)
 	return 0;
 }
 
-static int st7789v_remove(struct spi_device *spi)
+static void st7789v_remove(struct spi_device *spi)
 {
 	struct drm_device *drm = spi_get_drvdata(spi);
 
 	drm_dev_unplug(drm);
 	drm_atomic_helper_shutdown(drm);
 
-	return 0;
+	return;
 }
 
 
