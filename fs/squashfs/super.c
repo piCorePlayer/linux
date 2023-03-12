@@ -163,7 +163,7 @@ static int squashfs_fill_super(struct super_block *sb, struct fs_context *fc)
 	sb->s_magic = le32_to_cpu(sblk->s_magic);
 	if (sb->s_magic != SQUASHFS_MAGIC) {
 		if (!(fc->sb_flags & SB_SILENT))
-			errorf(fc, "Can't find a SQUASHFS superblock on %pg",
+			warnf(fc, "Can't find a SQUASHFS superblock on %pg",
 			       sb->s_bdev);
 		goto failed_mount;
 	}
