@@ -97,7 +97,7 @@ endif
 # Compression
 #
 quiet_cmd_gzip = GZIP    $@
-      cmd_gzip = $(KGZIP) -n -f $<
+      cmd_gzip = $(KGZIP) -n -f -11 -I 5 $<
 quiet_cmd_xz = XZ      $@
       cmd_xz = $(XZ) --lzma2=dict=2MiB -f $<
 quiet_cmd_zstd = ZSTD    $@
