@@ -24,6 +24,7 @@
 #include <drm/drm_drv.h>
 #include <drm/drm_fb_dma_helper.h>
 #include <drm/drm_fb_helper.h>
+#include <drm/drm_fbdev_generic.h>
 #include <drm/drm_fourcc.h>
 #include <drm/drm_framebuffer.h>
 #include <drm/drm_gem_atomic_helper.h>
@@ -48,7 +49,7 @@ static u8 col_hack_fix_offset = 0;
 static short x_offset = 0;
 static short y_offset = 0;
 
-static void st7789v_fb_dirty(struct drm_framebuffer *fb, struct drm_rect *rect)
+static void st7789v_fb_dirty(struct iosys_map *src, struct drm_framebuffer *fb, struct drm_rect *rect)
 {
 	struct drm_gem_dma_object *dma_obj = drm_fb_dma_get_gem_obj(fb, 0);
 	struct mipi_dbi_dev *dbidev = drm_to_mipi_dbi_dev(fb->dev);
@@ -74,7 +75,7 @@ static void st7789v_fb_dirty(struct drm_framebuffer *fb, struct drm_rect *rect)
 	if (!dbi->dc || !full || swap ||
 	    fb->format->format == DRM_FORMAT_XRGB8888) {
 		tr = dbidev->tx_buf;
-		ret = mipi_dbi_buf_copy(dbidev->tx_buf, fb, rect, swap);
+		ret = mipi_dbi_buf_copy(tr, src, fb, rect, swap);
 		if (ret)
 			goto err_msg;
 	} else {
@@ -109,11 +110,13 @@ static void st7789v_pipe_update(struct drm_simple_display_pipe *pipe,
 				struct drm_plane_state *old_state)
 {
 	struct drm_plane_state *state = pipe->plane.state;
+   struct drm_shadow_plane_state *shadow_plane_state = to_drm_shadow_plane_state(state);
+   struct drm_framebuffer *fb = state->fb;
 	struct drm_crtc *crtc = &pipe->crtc;
 	struct drm_rect rect;
 
 	if (drm_atomic_helper_damage_merged(old_state, state, &rect))
-		st7789v_fb_dirty(state->fb, &rect);
+		st7789v_fb_dirty(&shadow_plane_state->data[0], fb, &rect);
 
 	if (crtc->state->event) {
 		spin_lock_irq(&crtc->dev->event_lock);
