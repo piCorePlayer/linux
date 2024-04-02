@@ -32,6 +32,14 @@ config SND_BCM2708_SOC_CHIPDIP_DAC
          help
           Say Y or M if you want to add support for the ChipDip DAC soundcard
 
+config SND_BCM2708_SOC_AIY_VOICEBONNET
+	tristate "Support for Google AIY VoiceBonnet soundcard"
+	depends on SND_BCM2708_SOC_I2S || SND_BCM2835_SOC_I2S
+	select SND_SOC_RT5645
+	select SND_SOC_RL6231
+	help
+          Say Y or M if you want to add support for voiceBonnet soundcard.
+
 config SND_BCM2708_SOC_GOOGLEVOICEHAT_SOUNDCARD
 	tristate "Support for Google voiceHAT soundcard"
 	select SND_SOC_VOICEHAT
