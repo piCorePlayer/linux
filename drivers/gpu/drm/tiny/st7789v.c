@@ -51,21 +51,17 @@ static short y_offset = 0;
 
 static void st7789v_fb_dirty(struct iosys_map *src, struct drm_framebuffer *fb, struct drm_rect *rect)
 {
-	struct drm_gem_dma_object *dma_obj = drm_fb_dma_get_gem_obj(fb, 0);
 	struct mipi_dbi_dev *dbidev = drm_to_mipi_dbi_dev(fb->dev);
 	unsigned int height = rect->y2 - rect->y1;
 	unsigned int width = rect->x2 - rect->x1;
 	struct mipi_dbi *dbi = &dbidev->dbi;
 	bool swap = dbi->swap_bytes;
-	int idx, ret = 0;
+	int ret = 0;
 	u16 x1, x2, y1, y2;
 	bool full;
 	void *tr;
 
 	if (WARN_ON(!fb))
-		return;
-
-	if (!drm_dev_enter(fb->dev, &idx))
 		return;
 
 	full = width == fb->width && height == fb->height;
@@ -79,7 +75,7 @@ static void st7789v_fb_dirty(struct iosys_map *src, struct drm_framebuffer *fb, 
 		if (ret)
 			goto err_msg;
 	} else {
-		tr = dma_obj->vaddr;
+		tr = src->vaddr;
 	}
 
 	x1 = rect->x1 + x_offset;
@@ -102,8 +98,6 @@ err_msg:
 	if (ret)
 		dev_err_once(fb->dev->dev, "Failed to update display %d\n", ret);
 
-	drm_dev_exit(idx);
-
 }
 
 static void st7789v_pipe_update(struct drm_simple_display_pipe *pipe,
@@ -112,8 +106,20 @@ static void st7789v_pipe_update(struct drm_simple_display_pipe *pipe,
 	struct drm_plane_state *state = pipe->plane.state;
    struct drm_shadow_plane_state *shadow_plane_state = to_drm_shadow_plane_state(state);
    struct drm_framebuffer *fb = state->fb;
+	struct drm_gem_dma_object *dma_obj;
+	struct iosys_map src;
 	struct drm_crtc *crtc = &pipe->crtc;
 	struct drm_rect rect;
+	int idx;
+
+   if (!pipe->crtc.state->active)
+      return;
+
+   if (!drm_dev_enter(fb->dev, &idx))
+      return;
+
+	dma_obj = drm_fb_dma_get_gem_obj(fb, 0);
+	iosys_map_set_vaddr(&src, dma_obj->vaddr);
 
 	if (drm_atomic_helper_damage_merged(old_state, state, &rect))
 		st7789v_fb_dirty(&shadow_plane_state->data[0], fb, &rect);
@@ -124,6 +130,8 @@ static void st7789v_pipe_update(struct drm_simple_display_pipe *pipe,
 		spin_unlock_irq(&crtc->dev->event_lock);
 		crtc->state->event = NULL;
 	}
+
+	drm_dev_exit(idx);
 }
 
 static struct drm_display_mode st7789v_mode = {
@@ -137,10 +145,20 @@ static void st7789v_pipe_enable(struct drm_simple_display_pipe *pipe,
 			    struct drm_plane_state *plane_state)
 {
 	struct mipi_dbi_dev *dbidev = drm_to_mipi_dbi_dev(pipe->crtc.dev);
+	struct drm_shadow_plane_state *shadow_plane_state = to_drm_shadow_plane_state(plane_state);
+	struct drm_framebuffer *fb = plane_state->fb;
 	struct mipi_dbi *dbi = &dbidev->dbi;
 	u8 addr_mode;
 	u16 width = st7789v_mode.htotal;
 	u16 height = st7789v_mode.vtotal;
+	struct drm_rect rect = {
+		.x1 = 0,
+		.x2 = fb->width,
+		.y1 = 0,
+		.y2 = fb->height,
+	};
+	struct drm_gem_dma_object *dma_obj;
+	struct iosys_map src;
 	int ret, idx;
 
 	if (!drm_dev_enter(pipe->crtc.dev, &idx))
@@ -209,6 +227,11 @@ out_enable:
 
 	backlight_enable(dbidev->backlight);
 
+	dma_obj = drm_fb_dma_get_gem_obj(fb, 0);
+	iosys_map_set_vaddr(&src, dma_obj->vaddr);
+
+	st7789v_fb_dirty(&shadow_plane_state->data[0], fb, &rect);
+
 out_exit:
 	drm_dev_exit(idx);
 }
@@ -218,6 +241,11 @@ static const struct drm_simple_display_pipe_funcs st7789v_pipe_funcs = {
 	.enable = st7789v_pipe_enable,
 	.disable = mipi_dbi_pipe_disable,
 	.update = st7789v_pipe_update,
+	.begin_fb_access = mipi_dbi_pipe_begin_fb_access,
+	.end_fb_access	= mipi_dbi_pipe_end_fb_access,
+	.reset_plane	= mipi_dbi_pipe_reset_plane,
+	.duplicate_plane_state = mipi_dbi_pipe_duplicate_plane_state,
+	.destroy_plane_state = mipi_dbi_pipe_destroy_plane_state,
 };
 
 
