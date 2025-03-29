@@ -49,7 +49,8 @@ static u8 col_hack_fix_offset = 0;
 static short x_offset = 0;
 static short y_offset = 0;
 
-static void st7789v_fb_dirty(struct iosys_map *src, struct drm_framebuffer *fb, struct drm_rect *rect)
+static void st7789v_fb_dirty(struct iosys_map *src, struct drm_framebuffer *fb, 
+									struct drm_rect *rect, struct drm_format_conv_state *fmtcnv_state)
 {
 	struct mipi_dbi_dev *dbidev = drm_to_mipi_dbi_dev(fb->dev);
 	unsigned int height = rect->y2 - rect->y1;
@@ -71,7 +72,7 @@ static void st7789v_fb_dirty(struct iosys_map *src, struct drm_framebuffer *fb, 
 	if (!dbi->dc || !full || swap ||
 	    fb->format->format == DRM_FORMAT_XRGB8888) {
 		tr = dbidev->tx_buf;
-		ret = mipi_dbi_buf_copy(tr, src, fb, rect, swap);
+		ret = mipi_dbi_buf_copy(tr, src, fb, rect, swap, fmtcnv_state);
 		if (ret)
 			goto err_msg;
 	} else {
@@ -122,7 +123,7 @@ static void st7789v_pipe_update(struct drm_simple_display_pipe *pipe,
 	iosys_map_set_vaddr(&src, dma_obj->vaddr);
 
 	if (drm_atomic_helper_damage_merged(old_state, state, &rect))
-		st7789v_fb_dirty(&shadow_plane_state->data[0], fb, &rect);
+		st7789v_fb_dirty(&shadow_plane_state->data[0], fb, &rect, &shadow_plane_state->fmtcnv_state);
 
 	if (crtc->state->event) {
 		spin_lock_irq(&crtc->dev->event_lock);
@@ -230,7 +231,7 @@ out_enable:
 	dma_obj = drm_fb_dma_get_gem_obj(fb, 0);
 	iosys_map_set_vaddr(&src, dma_obj->vaddr);
 
-	st7789v_fb_dirty(&shadow_plane_state->data[0], fb, &rect);
+	st7789v_fb_dirty(&shadow_plane_state->data[0], fb, &rect, &shadow_plane_state->fmtcnv_state);
 
 out_exit:
 	drm_dev_exit(idx);
