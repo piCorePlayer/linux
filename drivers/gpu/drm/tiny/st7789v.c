@@ -409,7 +409,6 @@ static const struct dev_pm_ops st7789v_pm_ops = {
 static struct spi_driver st7789v_spi_driver = {
 	.driver = {
 		.name = "st7789v",
-		.owner = THIS_MODULE,
 		.of_match_table = st7789v_of_match,
 	},
 	.id_table = st7789v_id,
